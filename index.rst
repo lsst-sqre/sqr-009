@@ -64,13 +64,19 @@ datasets.
 Selecting the right technology stack
 ====================================
 
-The selected technologies prioritize the use of Python (3.x) as the 
+    - Python 3.4.3
+    - Django 1.8.4
+    - Bootstrap 3.2.0
+    - Bokeh 0.11
+    - Datashader 0.1
+
+The selected technologies prioritize the use of Python as the 
 main development language for rapid prototyping, and the use of the 
 selected framework features as much as possible. The main visualization needs,
 as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
 were also taken into consideration.
 
-The web application is being developed in Django (1.8.x) and we expect less work
+The web application is being developed in Django  and we expect less work
 on this part of the project as the main structure of the web application 
 is done. The QA database is modeled using the object-relational mapper 
 (ORM) built in the Django framework.
@@ -80,13 +86,16 @@ responsive pages on all sorts of devices and can easily be used in combination
 with Django.
 
 Finally, we expect the main development in extending this prototype to 
-happen in the bokeh plotting library (1.1) and datashader (0.1) to
+happen in the bokeh plotting library and datashader to
 create interactive visualization, in the QA database model and in the QA 
 analysis codes.  
 
-For FITS image visualization we plan to use Firefly image viewer. Still, 
-for sky visualization we plan to integrate Aladin Lite JS plugin.
-In Aladin, the processed dataset images must be pre-rendered in HiPS format, 
+For FITS image visualization we plan to use FFTools JS API to open individual
+ccd imagesi linked from the dashboard. 
+
+Still, for sky visualization we plan to integrate Aladin Lite JS plugin. 
+In Aladin, the processed dataset images must be pre-rendered in HiPS format 
+(http://aladin.u-strasbg.fr/hips/) 
 which demands some processing but we benefit from a number of reference survey 
 images available as well as the source catalog and polygon overlay features. 
 
@@ -97,8 +106,8 @@ and parallelization will be discussed in a separate document.
 Components
 ==========
 
-The main components of the SQUASH dashboard prototype are shown in figure 1. The figure 
-shows the integration of the QA analysis code with the Django
+The main components of the SQUASH dashboard prototype are shown in figure 1. 
+The figure shows the integration of the QA analysis code with the Django
 web application, the Bokeh-server and the QA Database through the ORM layer. 
 
 .. figure:: _static/components.png
@@ -141,22 +150,6 @@ Project structure
 
 .. code-block:: text
 
-    .
-    ├── conda-requirements.txt
-    ├── pages
-    ├── squash.py
-    ├── viz
-    └── webapp
-     ├── __init__.py
-     ├── static
-     │   ├── css
-     │   ├── fonts
-     │   └── js
-     ├── templates
-     ├── urls.py
-     ├── views.py
-     └── models.py
-
 
 Extending the prototype
 =======================
@@ -175,3 +168,37 @@ Adding a new property to the ccd table and display
 
 Adding a new page to the webapp
 -------------------------------
+
+APPENDIX A - Making of the qa_dashboard project
+===============================================
+
+In this appendix we document the initial steps used to create
+the Django project and the integration with the bokeh-server. 
+
+Installing the requirements
+---------------------------
+
+
+Creating the project
+--------------------
+
+.. code-block:: text
+
+$ django-admin.py startproject qa_dashboard
+$ cd qa_dashboard
+
+Running this command created a new directory called 'qa_dashboard', there is a manage.py file which is used to manage a number of aspects of the Django application such as creating the database and running the development web server.  Two other files just created are qa_dashboard/settings.py which contains configuration information for the application such as how to connect to the database and qa_dashboard/urls.py which maps URLs called by the browser to the appropriate Python code.
+
+Since we don't want user authentication in qa_dashboard, we removed the 'django.contrib.auth' from INSTALLED_APPS in qa_dashboard/settings.py.  
+
+Setting up the database
+-----------------------
+
+.. code-block:: text
+
+$ python manage.py migrate
+$ python manage.py createsuperuser
+
+After running this command, there will be a database file db.sqlite3 in the same directory as manage.py. SQLite works great for development, in production we will probably use MySQL. This command looks at INSTALLED_APPS in qa_dashboard/settings.py and creates database tables for models defined in those apps models.py files.
+
+
