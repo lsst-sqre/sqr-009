@@ -304,4 +304,25 @@ Start up the development server and navigate to the admin site http://localhost:
     $ python manage.py runserver
 
 
+APPENDIX B - Interfaces
+=======================
+
+Initial layouts for Home and dataset interfaces 
+
+.. figure:: _static/home.png
+   :name: fig-components
+   :target: _static/home.png
+   :alt: Home page of the SQUASH prototype 
+    
+   Home page of the SQUASH prototype
+
+.. figure:: _static/datasets.png
+   :name: fig-components
+   :target: _static/home.png
+   :alt: Datasets page of the SQUASH prototype 
+    
+   Datasets page of the SQUASH prototype
+
+
+
 
