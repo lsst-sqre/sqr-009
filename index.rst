@@ -171,24 +171,6 @@ Project structure
         └── wsgi.py
 
 
-Extending the prototype
-=======================
-
-Adding a new plot to the dashboard
-----------------------------------
-
-Adding a new property to the ccd table and display 
---------------------------------------------------
-
-   - Edit the models.py and the new property in the corresponding classes
-   - Use Django to generate a new migration 
-   - Change the QA script to register the new property
-   - Add the new property in the views.py
-   - Display the new property in a table or plot
-
-Adding a new page to the webapp
--------------------------------
-
 References
 ==========
 
@@ -259,7 +241,7 @@ Creation the dashboard models
 
 Let's create the Datasets, Visit and Ccds tables in the database (as outlined 
 in Phase 1) by writing the corresponding classes in dashboard/models.py file. 
-To create the database tables just run:
+Then creates the database tables by running:
 
 .. code-block:: text
 
@@ -304,10 +286,24 @@ Start up the development server and navigate to the admin site http://localhost:
     $ python manage.py runserver
 
 
-APPENDIX B - Interfaces
-=======================
+Integrating Bokeh with Django models
+====================================
 
-Initial layouts for Home and dataset interfaces 
+
+
+APPENDIX B - Prototype layout and navigation
+============================================
+
+Creating Templates
+==================
+
+Basic Styling
+=============
+
+Page layout
+===========
+
+Initial layouts for Home and Dataset pages.
 
 .. figure:: _static/home.png
    :name: fig-components
@@ -324,5 +320,26 @@ Initial layouts for Home and dataset interfaces
    Datasets page of the SQUASH prototype
 
 
+
+APPENDIX C - Extending the prototype
+====================================
+
+Adding a new plot to the dashboard
+----------------------------------
+
+Adding a new property to the ccd table and display it 
+-----------------------------------------------------
+
+   - Edit the models.py and the new property in the corresponding classes
+   - Use Django to generate a new migration 
+   - Change the QA script to register the new property
+   - Add the new property in the views.py
+   - Display the new property in a table or plot
+
+Adding a new tab in the Datasets page
+-------------------------------------
+
+Adding a new page to the webapp
+-------------------------------
 
 
