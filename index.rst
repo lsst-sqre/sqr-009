@@ -193,7 +193,7 @@ We want to use a few more Python packages than the ones mentioned above:
 
     - Python 3.4.4
     - Django 1.8.4
-    - Bootstrap 3.2.0
+    - Bootstrap 3.3.6
     - WebTest 2.0.16
     - django-webtest 1.7.7
     - Bokeh 0.11
@@ -236,7 +236,7 @@ Every Django model must live in an app, so at least one app is needed in a proje
     $ python manage.py startapp dashboard
  
 
-Creation the dashboard models
+Creating the dashboard models
 -----------------------------
 
 Let's create the Datasets, Visit and Ccds tables in the database (as outlined 
@@ -294,31 +294,63 @@ Integrating Bokeh with Django models
 APPENDIX B - Prototype layout and navigation
 ============================================
 
-Creating Templates
-==================
 
 Basic Styling
-=============
+-------------
 
-Page layout
-===========
+The static directory in the top-level directory contains the bootstrap CSS and Javascript
+files, it is defined in the squash/settings.py file:
 
-Initial layouts for Home and Dataset pages.
+.. code-block:: text
+
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, 'static'),
+        )
+
+The bootstrap was downloaded from http://getbootstrap.com/getting-started/#download 
+and extracted in the static directory, it provides the basic styling for the website.
+
+Prototype layout
+----------------
+
+When creating a website it is useful to prototype the 
+layout of the pages first, even if the backend is not complete. This section 
+explains the mechanism implemented in squash to do that. 
+
+The pages directory contains the prototype pages, it is referenced
+using a settings variable in squash/settings.py:
+
+.. code-block:: text
+
+    SITE_PAGES_DIRECTORY=os.path.join(BASE_DIR, 'pages')
+    ...
+
+The URL structure implemented in squash/urls.py matches the files in the pages 
+directory and loads their contet. With that it's easy to add new prototpype 
+pages and have dynamic links to them.
+
+For example, in pages/index.html the code
+
+
+.. code-block:: text
+
+     href="{% url 'page' 'datasets' %}"
+
+looks for the  pages/datasets.html file. See below example of prototype pages.
 
 .. figure:: _static/home.png
    :name: fig-components
    :target: _static/home.png
-   :alt: Home page of the SQUASH prototype 
+   :alt: Prototype layout for SQUASH home
     
-   Home page of the SQUASH prototype
+   Prototype layout for SQUASH home 
 
 .. figure:: _static/datasets.png
    :name: fig-components
    :target: _static/home.png
    :alt: Datasets page of the SQUASH prototype 
     
-   Datasets page of the SQUASH prototype
-
+   Prototype layour for SQUASH datasets
 
 
 APPENDIX C - Extending the prototype
@@ -327,10 +359,10 @@ APPENDIX C - Extending the prototype
 Adding a new plot to the dashboard
 ----------------------------------
 
-Adding a new property to the ccd table and display it 
------------------------------------------------------
+Adding new ccd property at and display 
+--------------------------------------
 
-   - Edit the models.py and the new property in the corresponding classes
+   - Edit the models.py and the new property in the Ccd class
    - Use Django to generate a new migration 
    - Change the QA script to register the new property
    - Add the new property in the views.py
