@@ -170,6 +170,27 @@ Project structure
         ├── urls.py
         └── wsgi.py
 
+Extending the prototype
+=======================
+
+Adding a new plot to the dashboard
+----------------------------------
+
+Adding new ccd property at and display 
+--------------------------------------
+
+   - Edit the models.py and the new property in the Ccd class
+   - Use Django to generate a new migration 
+   - Change the QA script to register the new property
+   - Add the new property in the views.py
+   - Display the new property in a table or plot
+
+Adding a new tab in the Datasets page
+-------------------------------------
+
+Adding a new page to the webapp
+-------------------------------
+
 
 References
 ==========
@@ -181,7 +202,7 @@ References
 
 
 APPENDIX A - Making of the squash project
-===============================================
+=========================================
 
 In this appendix we document the initial steps used to create
 the Django project and the integration with the bokeh-server. 
@@ -287,7 +308,7 @@ Start up the development server and navigate to the admin site http://localhost:
 
 
 Integrating Bokeh with Django models
-====================================
+------------------------------------
 
 
 
@@ -352,26 +373,5 @@ looks for the  pages/datasets.html file. See below example of prototype pages.
     
    Prototype layour for SQUASH datasets
 
-
-APPENDIX C - Extending the prototype
-====================================
-
-Adding a new plot to the dashboard
-----------------------------------
-
-Adding new ccd property at and display 
---------------------------------------
-
-   - Edit the models.py and the new property in the Ccd class
-   - Use Django to generate a new migration 
-   - Change the QA script to register the new property
-   - Add the new property in the views.py
-   - Display the new property in a table or plot
-
-Adding a new tab in the Datasets page
--------------------------------------
-
-Adding a new page to the webapp
--------------------------------
 
 
