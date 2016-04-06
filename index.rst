@@ -201,7 +201,8 @@ References
  - Bokeh webminar
  - Dashboard webminar
  - HiPS: http://aladin.u-strasbg.fr/hips/
-
+ - Django Database API Reference https://docs.djangoproject.com/en/1.9/topics/db/queries/
+ - Model Field Types https://docs.djangoproject.com/en/1.9/ref/models/fields/#model-field-types
 
 APPENDIX A - Making of the squash project
 =========================================
