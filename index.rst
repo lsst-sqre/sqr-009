@@ -50,7 +50,7 @@ Science Quality Analysis Harness (SQUASH) system.
 As stated in http://sqr-008.lsst.io the verification datasets use case 
 gives us the oportunity to leverage
 QA tests done in the past with pipeQA and more recently with HSC and CFHT QA 
-scripts in a comprehensible environment to preserve the codes and practices developed 
+scripts in a comprehensive environment to preserve the codes and practices developed
 by the verification datasets group.
 
 The development will follow the rapid prototype workflow to reach this goal more
@@ -59,7 +59,7 @@ layout and content, and as soon as we have a minimal viable product we ship
 the code for use and test purposes. In this process, we will take users 
 feedback and iterate back to face usability and performance issues trying 
 to engage them in the development. The ultimate goal
-is to antecipate SQUASH needs for comissioning and to provide feeback to 
+is to anticipate SQUASH needs for commissioning and to provide feedback to
 the production system design based on the experience in analyzing precursor 
 datasets.
 
@@ -72,34 +72,33 @@ selected framework features as much as possible. The main visualization needs,
 as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
 were also taken into consideration.
 
-TODO: Summarize some visualiation requirements here.
+TODO: Summarize visualization requirements here.
 
 The web application is being developed in Django  and we expect less work
-on this part of the project as the main structure of the web application 
+on this part of the project as the project structure and initial dashboard application
 is done. The QA database is modeled using the object-relational mapper 
 (ORM) built in the Django framework.
 
-The Bootstrap framework for web styling is very popular, it supports 
+As for the web application, the Bootstrap framework for web styling is very popular, it supports
 responsive pages on all sorts of devices and can easily be used in combination 
 with Django.
 
-Finally, we expect the main development in extending this prototype to 
+Once the basic project is done, we expect that the main development to
 happen in the bokeh plotting library and datashader to
-create interactive visualization, in the QA database model and in the QA 
-analysis codes.  
+create interactive visualization and in the QA database model to extend this prototype.
 
 For FITS image visualization we plan to use FFTools JS API to open individual
-ccd imagesi linked from the dashboard. 
+ccd images linked from the dashboard.
 
-Still, for sky visualization we plan to integrate Aladin Lite JS plugin. 
-In Aladin, the processed dataset images must be pre-rendered in HiPS format 
+Still, for sky visualization we plan to integrate Aladin Lite JS plugin. In Aladin, the processed
+dataset images must be pre-rendered in HiPS format
 (http://aladin.u-strasbg.fr/hips/) 
 which demands some processing but we benefit from a number of reference survey 
-images available as well as the source catalog and polygon overlay features. 
+images already available as well as the source catalog and polygon overlay features to display CCDs, visits etc.
 
-Initially, the QA analysis code will be _afterburner_ scripts that run on
-the output of the LSST stack processing. The implementation of the QA workflow 
-and parallelization will be discussed in a separate document.
+The QA analysis code (see for instance http://dmtn-008.lsst.io/en/latest/) are *afterburner* scripts that run on the
+output of the LSST stack processing. The implementation of the QA workflow and parallelization will be discussed in
+a separate document.
 
 
 Components
@@ -124,17 +123,21 @@ node.
 Implementation Phases
 =====================
 
-Phase 1: Initial project structure
-    - Create the Django project and initial web application
+Phase 1: DM-5728 Create Django project and initial dashboard app  (See Appendix A)
+
+    - Implement the ``Dataset``, ``Visit`` and ``Ccd`` tables in the django ORM layer, as a minimum set
+    of tables for the dashboard app
+    - Prototype home page and dashboard pages
     - Integration of bokeh server with Django
-    - Model dataset, visit and ccd tables in the Django ORM layer
-    - Implement template code to compute QA results
-    - Implement template code for registration of the QA results in the database
-    - Ability to display available datasets
-    - Ability to select a dataset and display QA results for each visit in a table
-    - Implement a diagnostic plot showing processing status
+
+Phase 2: DM-5745 Implement ingestion code for the QA results
+
+    - Ability to ingest JSON file produced by QA analysis code described in dmtn-008.lsst.io/en/latest/
+
 
 Phase 2: Adding more interactions to the dashboard
+    - Ability to display available datasets
+    - Ability to select a dataset and display QA results for each visit in a table
     - Ability to select a visit from a list or from a plot
       and display the focal plane with summary information for each ccd 
       (color coded)
@@ -149,8 +152,13 @@ Phase 3: Adding support to multiple runs
     - Ability to display and select available runs for each dataset
     - Ability to access process information
 
+
+Clonning the project
+====================
+
+
 Project structure
-=================
+-----------------
 
 .. code-block:: text
 
@@ -203,6 +211,7 @@ References
  - HiPS: http://aladin.u-strasbg.fr/hips/
  - Django Database API Reference https://docs.djangoproject.com/en/1.9/topics/db/queries/
  - Model Field Types https://docs.djangoproject.com/en/1.9/ref/models/fields/#model-field-types
+ - Use MySQL or MariaDB with your Django Application https://www.digitalocean.com/community/tutorials/how-to-use-mysql-or-mariadb-with-your-django-application-on-ubuntu-14-04
 
 APPENDIX A - Making of the squash project
 =========================================
@@ -212,6 +221,9 @@ the Django project and the integration with the bokeh-server.
 
 Python Package Requirements 
 ---------------------------
+
+TODO: move this to requirements.txt in the repository
+
 
 We want to use a few more Python packages than the ones mentioned above:
 
@@ -235,10 +247,6 @@ Creating the project
 
 Running this command creates a new directory called squash, there is a manage.py file which is used to manage a number of aspects of the Django application such as creating the database and running the development web server.  Two other files are squash/settings.py which contains configuration information for the application such as how to connect to the database and squash/urls.py which maps URLs called by the browser to the appropriate Python code.
 
-Since we don't want user authentication in this prototype, we removed the 'django.contrib.auth' from INSTALLED_APPS in squash/settings.py.  
-
-TODO: review this part, other "default" apps could be removed as well
-
 Setting up the database
 -----------------------
 
@@ -247,25 +255,40 @@ Setting up the database
     $ python manage.py migrate
     $ python manage.py createsuperuser
 
-After running this command, there will be a database file db.sqlite3 in the same directory as manage.py. SQLite works great for development, in production we will probably use MySQL. This command looks at INSTALLED_APPS in squash/settings.py and creates database tables for models defined in those apps models.py files.
+After running this command, there will be a database file db.sqlite3 in the same directory as manage.py. SQLite works
+great for development, in production we will probably use MySQL. This command looks at ``INSTALLED_APPS`` in
+``squash/settings.py`` and creates database tables for those apps.
 
 
 Creating the dashboard app
 --------------------------
 
-Every Django model must live in an app, so at least one app is needed in a project.
+Every app in Django has its own model, lets create the dashboard app.
 
 .. code-block:: text
 
     $ python manage.py startapp dashboard
- 
 
-Creating the dashboard models
------------------------------
+and let Django knows it exists by adding the new app at ``INSTALLED_APPS`` in ``squash/settings.py``
 
-Let's create the Datasets, Visit and Ccds tables in the database (as outlined 
-in Phase 1) by writing the corresponding classes in dashboard/models.py file. 
-Then creates the database tables by running:
+.. code-block:: python
+
+    # Application definition
+
+    INSTALLED_APPS = (
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'dashboard',
+    )
+
+
+
+Let's create the Datasets, Visit and Ccds tables (as outlined
+in Phase 1) by writing the corresponding classes in the ``dashboard/models.py`` file.
 
 .. code-block:: text
 
@@ -291,10 +314,10 @@ Then creates the database tables by running:
       Rendering model states... DONE
       Applying dashboard.0001_initial... OK
 
-Migrations are Django’s way of managing changes to models and the corresponding database. In order to see these
-tables from the Django admin interface we need to register them. We can do this by modifying dashboard/admin.py:
+Migrations are Django’s way of managing changes to models and the corresponding database tables. In order to see these
+tables from the Django admin interface by registering the new models here ``dashboard/admin.py``:
 
-.. code-block:: text
+.. code-block:: python
 
     from django.contrib import admin
     from .models import Dataset, Visit, Ccd
@@ -303,27 +326,23 @@ tables from the Django admin interface we need to register them. We can do this 
     admin.site.register(Visit)
     admin.site.register(Ccd)
 
-Start up the development server and navigate to the admin site http://localhost:8000/admin/
+Start up the development server and navigate to the admin site http://localhost:8000/admin/ to see the new tables:
 
 .. code-block:: text
 
     $ python manage.py runserver
 
 
-Integrating Bokeh with Django models
-------------------------------------
-
-
-
-APPENDIX B - Prototype layout and navigation
-============================================
-
+Prototype layouts
+-----------------
 
 Basic Styling
--------------
+^^^^^^^^^^^^^
 
-The static directory in the top-level directory contains the bootstrap CSS and Javascript
-files, it is defined in the squash/settings.py file:
+Download Bootstrap from http://getbootstrap.com/getting-started/#download
+and extract it the ``static`` directory, it provides the basic styling for the website.
+
+The ``static`` directory must be defined in the ``squash/settings.py`` file:
 
 .. code-block:: text
 
@@ -331,36 +350,35 @@ files, it is defined in the squash/settings.py file:
         os.path.join(BASE_DIR, 'static'),
         )
 
-The bootstrap was downloaded from http://getbootstrap.com/getting-started/#download 
-and extracted in the static directory, it provides the basic styling for the website.
 
-Prototype layout
-----------------
+Home and Dashboard page layouts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When creating a website it is useful to prototype the 
-layout of the pages first, even if the backend is not complete. This section 
-explains the mechanism implemented in squash to do that. 
+layout of the pages first. This section explains a mechanism implemented
+in squash to do that.
 
-The pages directory contains the prototype pages, it is referenced
-using a settings variable in squash/settings.py:
+The ``layouts`` directory contains the prototype layouts, it is referenced
+using a settings variable in ``squash/settings.py``:
 
 .. code-block:: text
 
-    SITE_PAGES_DIRECTORY=os.path.join(BASE_DIR, 'pages')
+    SITE_PAGES_DIRECTORY=os.path.join(BASE_DIR, 'layouts')
     ...
 
-The URL structure implemented in squash/urls.py matches the files in the pages 
-directory and loads their contet. With that it's easy to add new prototpype 
-pages and have dynamic links to them.
+The URL structure implemented in squash/urls.py matches the files in the ``layouts``
+directory and loads their content using the ``template/page.html``.
+
+With that it's easy to add new prototpype layout pages and have dynamic links to them.
 
 For example, in pages/index.html the code
 
 
 .. code-block:: text
 
-     href="{% url 'page' 'datasets' %}"
+     href="{% url 'page' 'dashboard' %}"
 
-looks for the  pages/datasets.html file. See below example of prototype pages.
+looks for the  pages/dashboard.html file. See below example of prototype pages.
 
 .. figure:: _static/home.png
    :name: fig-components
@@ -369,12 +387,12 @@ looks for the  pages/datasets.html file. See below example of prototype pages.
     
    Prototype layout for SQUASH home 
 
-.. figure:: _static/datasets.png
+.. figure:: _static/dashboard.png
    :name: fig-components
-   :target: _static/home.png
-   :alt: Datasets page of the SQUASH prototype 
+   :target: _static/dashboard.png
+   :alt: Prototype layout for SQUASH dashboard
     
-   Prototype layour for SQUASH datasets
+   Prototype layouts for SQUASH
 
 
 
