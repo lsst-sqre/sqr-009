@@ -167,23 +167,25 @@ Cloning the project
 
 .. code-block:: text
 
-    $ git clone ...
+    $ git clone  https://github.com/lsst-sqre/qa-dashboard.git
 
-Create a virtualenv and install dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create a virtualenv, install dependencies and work on a specific feature
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: text
 
-    $ cd squash
+    $ cd qa-dashboard
     $ virtualenv env -p python3
     $ source env/bin/activate
     $ pip install -r requirements.txt
     $ python -c "import django; print(django.get_version())"
     1.8.4
+    $ git branch  # See implementation phases above and pick the feature to work on
+    $ git checkout ticket-NNNN
 
 Project structure
 ^^^^^^^^^^^^^^^^^
 
-This corresponds to the initial project setup detailed in **Appendix A**
+This corresponds to the initial project setup detailed in **Appendix A** and in ticket/DM-5728.
 
 .. code-block:: text
 
@@ -271,8 +273,8 @@ References
 APPENDIX A - Making of the SQUASH  project
 ==========================================
 
-In this appendix we document the initial steps used to create
-the Django project and the integration with the bokeh server.
+In this appendix we document the initial setup to create
+the Django project (tickets/DM-5728) and its integration with the bokeh server (tickets/DM-5750).
 
 Creating the django project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -280,7 +282,6 @@ Creating the django project
 .. code-block:: text
 
     $ django-admin.py startproject squash
-    $ cd squash
 
 Running this command creates a new directory called squash, there is a ``manage.py`` file which is used to manage a
 number of aspects of the Django application such as creating the database and running the development web server.
@@ -293,6 +294,7 @@ Setting up the database
 
 .. code-block:: text
 
+    $ cd squash
     $ python manage.py migrate
     $ python manage.py createsuperuser
 
@@ -437,6 +439,12 @@ With that it's easy to add new prototpype layout pages and have dynamic links to
    :alt: Prototype layout for SQUASH dashboard
     
    Prototype layouts for SQUASH
+
+
+Integration with bokeh server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TODO
 
 
 
