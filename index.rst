@@ -123,19 +123,23 @@ node.
 Implementation Phases
 =====================
 
-Phase 1: DM-5728 Create Django project and initial dashboard app  (See Appendix A)
+Phase 1: Initial Django project and integration with bokeh server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    - Implement the ``Dataset``, ``Visit`` and ``Ccd`` tables in the django ORM layer, as a minimum set
-    of tables for the dashboard app
-    - Prototype home page and dashboard pages
-    - Integration of bokeh server with Django
+    - DM-5728 Create Django project and initial dashboard app  (See Appendix A)
+        - Implement the ``Dataset``, ``Visit`` and ``Ccd`` tables in the django ORM layer, as a minimum set of tables for the dashboard app
+        - Prototype home page and dashboard pages
+    - DM-5750 Integration of Django with bokeh server
 
-Phase 2: DM-5745 Implement ingestion code for the QA results
+Phase 2: Integration with QA analysis code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    - Ability to ingest JSON file produced by QA analysis code described in dmtn-008.lsst.io/en/latest/
+    - DM-5745 Implement ingestion code for the QA results
+        - Ability to ingest JSON file produced by QA analysis code described in http://dmtn-008.lsst.io/en/latest/
 
+Phase 3: Adding interactions to the dashboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Phase 2: Adding more interactions to the dashboard
     - Ability to display available datasets
     - Ability to select a dataset and display QA results for each visit in a table
     - Ability to select a visit from a list or from a plot
@@ -147,18 +151,39 @@ Phase 2: Adding more interactions to the dashboard
     - Model metrics tables in the Django ORM layer
     - Ability to display metrics at ccd and visit levels
 
-Phase 3: Adding support to multiple runs
+Phase 4: Integration with Aladin
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Phase 5: Adding support to multiple runs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
     - Model processing tables in the Django ORM layer
     - Ability to display and select available runs for each dataset
     - Ability to access process information
 
 
-Clonning the project
+Cloning the project
 ====================
 
+.. code-block:: text
+
+    $ git clone ...
+
+Create a virtualenv and install dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: text
+
+    $ cd squash
+    $ virtualenv env -p python3
+    $ source env/bin/activate
+    $ pip install -r requirements.txt
+    $ python -c "import django; print(django.get_version())"
+    1.8.4
 
 Project structure
------------------
+^^^^^^^^^^^^^^^^^
+
+This corresponds to the initial project setup detailed in **Appendix A**
 
 .. code-block:: text
 
@@ -173,34 +198,64 @@ Project structure
     │   ├── tests.py
     │   └── views.py
     ├── db.sqlite3
+    ├── layouts
+    │   ├── datasets.html
+    │   └── index.html
     ├── manage.py
-    └── squash
-        ├── __init__.py
-        ├── settings.py
-        ├── urls.py
-        └── wsgi.py
+    ├── requirements.txt
+    ├── squash
+    │   ├── __init__.py
+    │   ├── settings.py
+    │   ├── urls.py
+    │   ├── views.py
+    │   └── wsgi.py
+    ├── static
+    │   ├── css
+    │   │   ├── bootstrap.css
+    │   │   ├── bootstrap.css.map
+    │   │   ├── bootstrap.min.css
+    │   │   ├── bootstrap.min.css.map
+    │   │   ├── bootstrap-theme.css
+    │   │   ├── bootstrap-theme.css.map
+    │   │   ├── bootstrap-theme.min.css
+    │   │   ├── bootstrap-theme.min.css.map
+    │   │   └── site.css
+    │   ├── fonts
+    │   │   ├── glyphicons-halflings-regular.eot
+    │   │   ├── glyphicons-halflings-regular.svg
+    │   │   ├── glyphicons-halflings-regular.ttf
+    │   │   ├── glyphicons-halflings-regular.woff
+    │   │   └── glyphicons-halflings-regular.woff2
+    │   └── js
+    │       ├── bootstrap.js
+    │       ├── bootstrap.min.js
+    │       └── npm.js
+    └── templates
+        ├── base.html
+        └── page.html
+
 
 Extending the prototype
 =======================
 
 Adding a new plot to the dashboard
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Adding new ccd property at and display 
---------------------------------------
+TODO
 
-   - Edit the models.py and the new property in the Ccd class
+Adding new ccd property in the Ccd model and display
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   - Edit the models.py and the new property in the Ccd model
    - Use Django to generate a new migration 
    - Change the QA script to register the new property
    - Add the new property in the views.py
    - Display the new property in a table or plot
 
-Adding a new tab in the Datasets page
--------------------------------------
+Adding a new tab in the dashboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Adding a new page to the webapp
--------------------------------
-
+TODO
 
 References
 ==========
@@ -213,63 +268,50 @@ References
  - Model Field Types https://docs.djangoproject.com/en/1.9/ref/models/fields/#model-field-types
  - Use MySQL or MariaDB with your Django Application https://www.digitalocean.com/community/tutorials/how-to-use-mysql-or-mariadb-with-your-django-application-on-ubuntu-14-04
 
-APPENDIX A - Making of the squash project
-=========================================
+APPENDIX A - Making of the SQUASH  project
+==========================================
 
 In this appendix we document the initial steps used to create
-the Django project and the integration with the bokeh-server. 
+the Django project and the integration with the bokeh server.
 
-Python Package Requirements 
----------------------------
-
-TODO: move this to requirements.txt in the repository
-
-
-We want to use a few more Python packages than the ones mentioned above:
-
-    - Python 3.4.4
-    - Django 1.8.4
-    - Bootstrap 3.3.6
-    - WebTest 2.0.16
-    - django-webtest 1.7.7
-    - Bokeh 0.11
-    - Datashader 0.1
-
-TODO: try to install everything with pip instead of conda, create a virtualenv.
-
-Creating the project
---------------------
+Creating the django project
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
     $ django-admin.py startproject squash
     $ cd squash
 
-Running this command creates a new directory called squash, there is a manage.py file which is used to manage a number of aspects of the Django application such as creating the database and running the development web server.  Two other files are squash/settings.py which contains configuration information for the application such as how to connect to the database and squash/urls.py which maps URLs called by the browser to the appropriate Python code.
+Running this command creates a new directory called squash, there is a ``manage.py`` file which is used to manage a
+number of aspects of the Django application such as creating the database and running the development web server.
+Two other important files are ``squash/settings.py`` which contains configuration information for the application
+such as how to connect to the database and ``squash/urls.py`` which maps URLs called by the browser
+to the appropriate Python code.
 
 Setting up the database
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
     $ python manage.py migrate
     $ python manage.py createsuperuser
 
-After running this command, there will be a database file db.sqlite3 in the same directory as manage.py. SQLite works
+After running this command, there will be a database file ``db.sqlite3`` in the same directory as ``manage.py``. SQLite works
 great for development, in production we will probably use MySQL. This command looks at ``INSTALLED_APPS`` in
-``squash/settings.py`` and creates database tables for those apps.
+``squash/settings.py`` and creates database tables for them. There are a number apps e.g ``admin``, ``auth`` and ``sessions``
+installed by default.
 
 
 Creating the dashboard app
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Every app in Django has its own model, lets create the dashboard app.
+Lets create the dashboard app, every app in Django has its own model
 
 .. code-block:: text
 
     $ python manage.py startapp dashboard
 
-and let Django knows it exists by adding the new app at ``INSTALLED_APPS`` in ``squash/settings.py``
+let Django knows about its existence by adding the new app at ``INSTALLED_APPS`` in ``squash/settings.py``
 
 .. code-block:: python
 
@@ -287,8 +329,11 @@ and let Django knows it exists by adding the new app at ``INSTALLED_APPS`` in ``
 
 
 
-Let's create the Datasets, Visit and Ccds tables (as outlined
-in Phase 1) by writing the corresponding classes in the ``dashboard/models.py`` file.
+Let's create the ``Datasets``, ``Visit`` and ``Ccds`` tables (as outlined
+in Phase 1) by writing the corresponding classes in the ``dashboard/models.py`` file, that is a minimum set
+of tables needed to make the dashboard useful. As the appplication evolves we will add support for multiple
+runs, refine the content of the ``Visits`` and ``Ccd`` tables with summary information as well as add support
+for science requirements (metrics) implementing another set of tables (see http://sqr-008.lsst.io/en/latest/).
 
 .. code-block:: text
 
@@ -314,8 +359,8 @@ in Phase 1) by writing the corresponding classes in the ``dashboard/models.py`` 
       Rendering model states... DONE
       Applying dashboard.0001_initial... OK
 
-Migrations are Django’s way of managing changes to models and the corresponding database tables. In order to see these
-tables from the Django admin interface by registering the new models here ``dashboard/admin.py``:
+Migrations are Django’s way of managing changes to models and the corresponding database tables. You have to register
+the new models here ``dashboard/admin.py`` in order to see the tables from the Django admin interface.
 
 .. code-block:: python
 
@@ -334,10 +379,10 @@ Start up the development server and navigate to the admin site http://localhost:
 
 
 Prototype layouts
------------------
+^^^^^^^^^^^^^^^^^
 
 Basic Styling
-^^^^^^^^^^^^^
+-------------
 
 Download Bootstrap from http://getbootstrap.com/getting-started/#download
 and extract it the ``static`` directory, it provides the basic styling for the website.
@@ -351,34 +396,33 @@ The ``static`` directory must be defined in the ``squash/settings.py`` file:
         )
 
 
-Home and Dashboard page layouts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Home and dashboard page layouts
+-------------------------------
 
 When creating a website it is useful to prototype the 
 layout of the pages first. This section explains a mechanism implemented
-in squash to do that.
+in the squash project to do that.
 
-The ``layouts`` directory contains the prototype layouts, it is referenced
+The ``layouts`` directory contains the prototype layout pages, it is referenced
 using a settings variable in ``squash/settings.py``:
 
 .. code-block:: text
-
+    ...
     SITE_PAGES_DIRECTORY=os.path.join(BASE_DIR, 'layouts')
     ...
 
-The URL structure implemented in squash/urls.py matches the files in the ``layouts``
+The URL structure implemented in ``squash/urls.py`` matches the files in the ``layouts``
 directory and loads their content using the ``template/page.html``.
 
-With that it's easy to add new prototpype layout pages and have dynamic links to them.
-
-For example, in pages/index.html the code
-
+In ``layouts/index.html``, the code
 
 .. code-block:: text
 
      href="{% url 'page' 'dashboard' %}"
 
-looks for the  pages/dashboard.html file. See below example of prototype pages.
+uses the template to render the ``layouts/dashboard.html`` layout.
+
+With that it's easy to add new prototpype layout pages and have dynamic links to them. See below example of prototype pages.
 
 .. figure:: _static/home.png
    :name: fig-components
