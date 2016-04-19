@@ -47,11 +47,14 @@ Introduction
 This document describes the implementation of a prototype dashboard for the
 Science Quality Analysis Harness (SQUASH) system.
 
-As stated in http://sqr-008.lsst.io the verification datasets use case 
+As stated in http://sqr-008.lsst.io the verification datasets use case
 gives us the oportunity to leverage
 QA tests done in the past with pipeQA and more recently with HSC and CFHT QA 
-scripts in a comprehensive environment to preserve the codes and practices developed
+scripts in a comprehensive infrastructure to preserve the codes and practices developed
 by the verification datasets group.
+
+For level 0 QA, the prototype will test the stability of the codes by measuring key
+ performance metrics using a fixed dataset.
 
 The development will follow the rapid prototype workflow to reach this goal more
 efficiently. In this process we build the initial interfaces, discuss its 
@@ -60,7 +63,7 @@ the code for use and test purposes. In this process, we will take users
 feedback and iterate back to face usability and performance issues trying 
 to engage them in the development. The ultimate goal
 is to anticipate SQUASH needs for commissioning and to provide feedback to
-the production system design based on the experience in analyzing precursor 
+the production system design based on the experience in testing the code in precursor
 datasets.
 
 Selecting the right technology stack
@@ -84,21 +87,16 @@ responsive pages on all sorts of devices and can easily be used in combination
 with Django.
 
 Once the basic project is done, we expect that the main development to
-happen in the bokeh plotting library and datashader to
-create interactive visualization and in the QA database model to extend this prototype.
+happen in extending the dashboard using the bokeh plotting library and datashader to
+create interactive visualizations.
 
-For FITS image visualization we plan to use FFTools JS API to open individual
-ccd images linked from the dashboard.
+For level 0 QA, the metrics code (see for instance http://dmtn-008.lsst.io/en/latest/) is an *afterburner* scripts that
+runs on the output of the LSST stack processing. These scripts will be executed as **Jenkins** job as part of continuous
+integration runs.
 
-Still, for sky visualization we plan to integrate Aladin Lite JS plugin. In Aladin, the processed
-dataset images must be pre-rendered in HiPS format
-(http://aladin.u-strasbg.fr/hips/) 
-which demands some processing but we benefit from a number of reference survey 
-images already available as well as the source catalog and polygon overlay features to display CCDs, visits etc.
-
-The QA analysis code (see for instance http://dmtn-008.lsst.io/en/latest/) are *afterburner* scripts that run on the
-output of the LSST stack processing. The implementation of the QA workflow and parallelization will be discussed in
-a separate document.
+For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API linked from the dashboard.
+For sky visualization we plan to integrate Aladin Lite JS plugin. In Aladin, images must be pre-generated in
+HiPS format (http://aladin.u-strasbg.fr/hips/)
 
 
 Components
@@ -115,10 +113,9 @@ web application, the Bokeh-server and the QA Database through the ORM layer.
 
    Main components of SQUASH dashboard prototype.
 
-For development all these components run on a local computer, but if
-development requires larger data volumes we can imagine
-a situation were the QA database, and perhaps the bokeh server run on a remote 
-node.
+For development all these components run on a local computer, but if the size of the
+datasets become an issue, the bokeh server can run on a remote server closer to the data.
+
 
 Implementation Phases
 =====================
@@ -127,40 +124,33 @@ Phase 1: Initial Django project and integration with bokeh server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     - DM-5728 Create Django project and initial dashboard app  (See Appendix A)
-        - Implement the ``Dataset``, ``Visit`` and ``Ccd`` tables in the django ORM layer, as a minimum set of tables for the dashboard app
+        - Implement the ``Job``, ``Metric`` and ``Measurement`` tables in the django ORM layer, as a minimum set of tables for the dashboard app
         - Prototype home page and dashboard pages
     - DM-5750 Integration of Django with bokeh server
 
 Phase 2: Integration with QA analysis code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    - DM-5745 Implement ingestion code for the QA results
-        - Ability to ingest JSON file produced by QA analysis code described in http://dmtn-008.lsst.io/en/latest/
+    - DM-5745 implement ingestion code for the QA results
+        - Ability to ingest JSON outputs produced by QA analysis code described in http://dmtn-008.lsst.io/en/latest/
 
 Phase 3: Adding interactions to the dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    - Ability to display available datasets
-    - Ability to select a dataset and display QA results for each visit in a table
-    - Ability to select a visit from a list or from a plot
-      and display the focal plane with summary information for each ccd 
-      (color coded)
-    - Ability to navigate through the list of visits
-    - Ability to display QA plots at the visit level
-    - Ability to select a ccd and display QA plots at the ccd level
-    - Model metrics tables in the Django ORM layer
-    - Ability to display metrics at ccd and visit levels
+    - Ability to select a job and display QA results
+    - Ability to display job information (Jenkins API?)
+    - Ability to navigate through the list of Metrics
 
-Phase 4: Integration with Aladin
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Phase 5: Adding support to multiple runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Phase 4: Adding support to multiple datasets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    - Model processing tables in the Django ORM layer
+    - Add datasets table in the Django ORM layer
+    - Ability to access dataset information
     - Ability to display and select available runs for each dataset
-    - Ability to access process information
 
+Phase 5: Integration with Aladin
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Cloning the project
 ====================
@@ -182,75 +172,81 @@ Create a virtualenv, install dependencies and work on a specific feature
     $ git branch  # See implementation phases above and pick the feature to work on
     $ git checkout ticket-NNNN
 
-Project structure
-^^^^^^^^^^^^^^^^^
+Level 0 QA
+==========
 
-This corresponds to the initial project setup detailed in **Appendix A** and in ticket/DM-5728.
+For level 0 QA, the data model includes the ``Job``, ``Measurement`` and ``Metric`` tables which are sufficient to
+characterize a metric, its measurement and information about the job that performed the measurement.
 
-.. code-block:: text
+.. figure:: _static/level0-db.png
+   :name: fig-level0-db
+   :target: _static/level0-db.png
+   :alt: Level 0 database schema
 
-    .
-    ├── dashboard
-    │   ├── admin.py
-    │   ├── __init__.py
-    │   ├── migrations
-    │   │   ├── 0001_initial.py
-    │   │   ├── __init__.py
-    │   ├── models.py
-    │   ├── tests.py
-    │   └── views.py
-    ├── db.sqlite3
-    ├── layouts
-    │   ├── datasets.html
-    │   └── index.html
-    ├── manage.py
-    ├── requirements.txt
-    ├── squash
-    │   ├── __init__.py
-    │   ├── settings.py
-    │   ├── urls.py
-    │   ├── views.py
-    │   └── wsgi.py
-    ├── static
-    │   ├── css
-    │   │   ├── bootstrap.css
-    │   │   ├── bootstrap.css.map
-    │   │   ├── bootstrap.min.css
-    │   │   ├── bootstrap.min.css.map
-    │   │   ├── bootstrap-theme.css
-    │   │   ├── bootstrap-theme.css.map
-    │   │   ├── bootstrap-theme.min.css
-    │   │   ├── bootstrap-theme.min.css.map
-    │   │   └── site.css
-    │   ├── fonts
-    │   │   ├── glyphicons-halflings-regular.eot
-    │   │   ├── glyphicons-halflings-regular.svg
-    │   │   ├── glyphicons-halflings-regular.ttf
-    │   │   ├── glyphicons-halflings-regular.woff
-    │   │   └── glyphicons-halflings-regular.woff2
-    │   └── js
-    │       ├── bootstrap.js
-    │       ├── bootstrap.min.js
-    │       └── npm.js
-    └── templates
-        ├── base.html
-        └── page.html
+   Level 0 database schema.
+
+The API provides endpoints for each table http://localhost:8000/api/, for instance:
+
+.. figure:: _static/api-metric.png
+   :name: api-metric
+   :target: _static/api-metric.png
+   :alt: API endpoint for listing and creating metrics
+
+   API endpoint for listing and creating metrics.
+
+
+with the API, metrics can be inserted as follows:
+
+.. code-block:: python
+
+   >>> import requests
+   >>> response = requests.get('http://localhost:8000/api/')
+   >>> response.status_code
+   200
+   >>> api = response.json()
+   >>> api['metric']
+   'http://localhost:8000/api/metric/'
+   >>>
+   >>> metric = {
+                  'name': 'PA1',
+                  'description': 'Photometric Repeatability',
+                  'units': 'millimag',
+                  'minimum': '8',
+                  'design': '5',
+                  'stretch': '3'
+                  }
+   >>> response = requests.post(api['metric'], data=metric)
+   >>> response.status_code
+   201
+
+Since metrics are predefined, this table is filled by the bootstrap script `run.py` which also creates the development
+database.
+
+A job and the result of a measurement can be inserted by
+
+.. code-block:: python
+
+   >>> job = {
+               'name': 'ci_cfht',
+               'build': '1',
+               'start': 'Apr 18, 2016 1:57:00 PM',
+               'duration': '5',
+               'status': '0'
+               }
+   >>> response = requests.post(api['job'], data=job)
+   >>> response.status_code
+   201
 
 
 Extending the prototype
 =======================
 
-Adding a new plot to the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changing the data model
+^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO
-
-Adding new ccd property in the Ccd model and display
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   - Edit the models.py and the new property in the Ccd model
-   - Use Django to generate a new migration 
-   - Change the QA script to register the new property
+   - Edit the models.py and the new property in the model
+   - Use Django to generate a new migration
+   - Change the ingestion script to register the new property
    - Add the new property in the views.py
    - Display the new property in a table or plot
 
@@ -258,6 +254,13 @@ Adding a new tab in the dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 TODO
+
+Adding a new plot to the dashboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TODO
+
+
 
 References
 ==========
