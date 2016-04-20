@@ -48,46 +48,35 @@ This document describes the implementation of a prototype dashboard for the
 Science Quality Analysis Harness (SQUASH) system.
 
 As stated in http://sqr-008.lsst.io the verification datasets use case
-gives us the oportunity to leverage
-QA tests done in the past with pipeQA and more recently with HSC and CFHT QA 
+gives us the oportunity to leverage QA tests done in the past with pipeQA and more recently with HSC and CFHT QA
 scripts in a comprehensive infrastructure to preserve the codes and practices developed
 by the verification datasets group.
 
-For level 0 QA, the prototype will test the stability of the codes by measuring key
- performance metrics using a fixed dataset.
+For level 0 QA, the prototype will test the stability of the single visit processing and QA codes in the LSST
+stack by measuring key performance metrics using a fixed dataset and configuration.
 
 The development will follow the rapid prototype workflow to reach this goal more
-efficiently. In this process we build the initial interfaces, discuss its 
-layout and content, and as soon as we have a minimal viable product we ship 
-the code for use and test purposes. In this process, we will take users 
-feedback and iterate back to face usability and performance issues trying 
-to engage them in the development. The ultimate goal
-is to anticipate SQUASH needs for commissioning and to provide feedback to
-the production system design based on the experience in testing the code in precursor
+efficiently. As soon as we have a minimal viable product we'll ship it to production.
+In this process, we want early feedback from users and iterate back on usability issues.
+
+The ultimate goal is to anticipate SQUASH needs for commissioning and to provide feedback to
+the production QA systems based on the experience of testing precursor
 datasets.
 
 Selecting the right technology stack
 ====================================
 
 The selected technologies prioritize the use of Python as the 
-main development language for rapid prototyping, and the use of the 
-selected framework features as much as possible. The main visualization needs,
-as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
-were also taken into consideration.
-
-TODO: Summarize visualization requirements here.
+main development language, and the use of the selected framework features as much as possible.
 
 The web application is being developed in Django  and we expect less work
 on this part of the project as the project structure and initial dashboard application
-is done. The QA database is modeled using the object-relational mapper 
+is done.
+
+The QA database is modeled using the object-relational mapper
 (ORM) built in the Django framework.
 
-As for the web application, the Bootstrap framework for web styling is very popular, it supports
-responsive pages on all sorts of devices and can easily be used in combination 
-with Django.
-
-Once the basic project is done, we expect that the main development to
-happen in extending the dashboard using the bokeh plotting library and datashader to
+The dashboard will use the bokeh plotting library and datashader to
 create interactive visualizations.
 
 For level 0 QA, the metrics code (see for instance http://dmtn-008.lsst.io/en/latest/) is an *afterburner* scripts that
@@ -97,6 +86,9 @@ integration runs.
 For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API linked from the dashboard.
 For sky visualization we plan to integrate Aladin Lite JS plugin. In Aladin, images must be pre-generated in
 HiPS format (http://aladin.u-strasbg.fr/hips/)
+
+The main visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
+has also been taken into consideration.
 
 
 Components
@@ -337,11 +329,8 @@ let Django knows about its existence by adding the new app at ``INSTALLED_APPS``
 
 
 
-Let's create the ``Datasets``, ``Visit`` and ``Ccds`` tables (as outlined
-in Phase 1) by writing the corresponding classes in the ``dashboard/models.py`` file, that is a minimum set
-of tables needed to make the dashboard useful. As the appplication evolves we will add support for multiple
-runs, refine the content of the ``Visits`` and ``Ccd`` tables with summary information as well as add support
-for science requirements (metrics) implementing another set of tables (see http://sqr-008.lsst.io/en/latest/).
+Let's create the models for ``Datasets``, ``Visit`` and ``Ccds`` by writing the corresponding classes in the
+``dashboard/models.py`` file, that is a minimum set of tables needed to make the dashboard useful.
 
 .. code-block:: text
 
@@ -402,49 +391,6 @@ The ``static`` directory must be defined in the ``squash/settings.py`` file:
     STATICFILES_DIRS = (
         os.path.join(BASE_DIR, 'static'),
         )
-
-
-Home and dashboard page layouts
--------------------------------
-
-When creating a website it is useful to prototype the 
-layout of the pages first. This section explains a mechanism implemented
-in the squash project to do that.
-
-The ``layouts`` directory contains the prototype layout pages, it is referenced
-using a settings variable in ``squash/settings.py``:
-
-.. code-block:: text
-    ...
-    SITE_PAGES_DIRECTORY=os.path.join(BASE_DIR, 'layouts')
-    ...
-
-The URL structure implemented in ``squash/urls.py`` matches the files in the ``layouts``
-directory and loads their content using the ``template/page.html``.
-
-In ``layouts/index.html``, the code
-
-.. code-block:: text
-
-     href="{% url 'page' 'dashboard' %}"
-
-uses the template to render the ``layouts/dashboard.html`` layout.
-
-With that it's easy to add new prototpype layout pages and have dynamic links to them. See below example of prototype pages.
-
-.. figure:: _static/home.png
-   :name: fig-home
-   :target: _static/home.png
-   :alt: Prototype layout for SQUASH home
-    
-   Prototype layout for SQUASH home 
-
-.. figure:: _static/dashboard.png
-   :name: fig-dashboard
-   :target: _static/dashboard.png
-   :alt: Prototype layout for SQUASH dashboard
-    
-   Prototype layouts for SQUASH
 
 
 Integration with bokeh server
