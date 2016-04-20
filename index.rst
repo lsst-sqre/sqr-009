@@ -185,6 +185,8 @@ characterize a metric, its measurement and information about the job that perfor
 
    Level 0 database schema.
 
+The metrics table is initialized with the values specified in
+
 The API provides endpoints for each table http://localhost:8000/api/, for instance:
 
 .. figure:: _static/api-metric.png
@@ -213,7 +215,8 @@ with the API, metrics can be inserted as follows:
                   'units': 'millimag',
                   'minimum': '8',
                   'design': '5',
-                  'stretch': '3'
+                  'stretch': '3',
+                  'user': '10',
                   }
    >>> response = requests.post(api['metric'], data=metric)
    >>> response.status_code
@@ -430,14 +433,14 @@ uses the template to render the ``layouts/dashboard.html`` layout.
 With that it's easy to add new prototpype layout pages and have dynamic links to them. See below example of prototype pages.
 
 .. figure:: _static/home.png
-   :name: fig-components
+   :name: fig-home
    :target: _static/home.png
    :alt: Prototype layout for SQUASH home
     
    Prototype layout for SQUASH home 
 
 .. figure:: _static/dashboard.png
-   :name: fig-components
+   :name: fig-dashboard
    :target: _static/dashboard.png
    :alt: Prototype layout for SQUASH dashboard
     
