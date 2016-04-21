@@ -91,12 +91,12 @@ The main visualization needs, as summarized at https://dev.lsstcorp.org/trac/wik
 has also been taken into consideration.
 
 
-Components
-==========
+Architecture
+============
 
-The main components of the SQUASH dashboard prototype are shown in figure 1. 
-The figure shows the integration of the QA analysis code with the Django
-web application, the Bokeh-server and the QA Database through the ORM layer. 
+The architecture of the SQUASH dashboard is shown in figure 1.
+The QA analysis code sends data to the dashboard through a ``POST`` request
+and a ``post_save`` signal from Django is used to update the bokeh sessions.
 
 .. figure:: _static/components.png
    :name: fig-components
@@ -105,8 +105,6 @@ web application, the Bokeh-server and the QA Database through the ORM layer.
 
    Main components of SQUASH dashboard prototype.
 
-For development all these components run on a local computer, but if the size of the
-datasets become an issue, the bokeh server can run on a remote server closer to the data.
 
 
 Implementation Phases
