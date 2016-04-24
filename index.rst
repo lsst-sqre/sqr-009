@@ -106,7 +106,6 @@ and a ``post_save`` signal from Django is used to update the bokeh sessions.
    Main components of SQUASH dashboard prototype.
 
 
-
 Implementation Phases
 =====================
 
@@ -175,9 +174,7 @@ characterize a metric, its measurement and information about the job that perfor
 
    Level 0 database schema.
 
-The metrics table is initialized with the values specified in
-
-The API provides endpoints for each table http://localhost:8000/api/, for instance:
+The metrics table is initialized with the values specified in the science requirements document LPM-17, example:
 
 .. figure:: _static/api-metric.png
    :name: api-metric
@@ -186,8 +183,6 @@ The API provides endpoints for each table http://localhost:8000/api/, for instan
 
    API endpoint for listing and creating metrics.
 
-
-with the API, metrics can be inserted as follows:
 
 .. code-block:: python
 
@@ -200,7 +195,7 @@ with the API, metrics can be inserted as follows:
    'http://localhost:8000/api/metric/'
    >>>
    >>> metric = {
-                  'name': 'PA1',
+                  'metric': 'PA1',
                   'description': 'Photometric Repeatability',
                   'units': 'millimag',
                   'minimum': '8',
@@ -208,25 +203,25 @@ with the API, metrics can be inserted as follows:
                   'stretch': '3',
                   'user': '10',
                   }
-   >>> response = requests.post(api['metric'], data=metric)
+   >>> response = requests.post(api['metric'], data=metric, auth=(TEST_USER, TEST_PASSWD))
    >>> response.status_code
    201
 
-Since metrics are predefined, this table is filled by the bootstrap script `run.py` which also creates the development
-database.
 
-A job and the result of a measurement can be inserted by
+A job and the result of its measurement can be inserted in a single request given the metric name, example:
 
 .. code-block:: python
 
    >>> job = {
-               'name': 'ci_cfht',
-               'build': '1',
-               'start': 'Apr 18, 2016 1:57:00 PM',
-               'duration': '5',
-               'status': '0'
-               }
-   >>> response = requests.post(api['job'], data=job)
+            "name": "ci_cfht",
+            "build": "1",
+            "runtime": "2016-04-24T19:26:12.561564Z",
+            "url": "https://ci.lsst.codes/job/ci_cfht/1/",
+            "status": 0,
+            "measurements": [{ "metric": "PA1", "value": 5.0}]
+         }
+
+   >>> response = requests.post(api['job'], data=job, auth=(TEST_USER, TEST_PASSWD))
    >>> response.status_code
    201
 
