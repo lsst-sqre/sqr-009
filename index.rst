@@ -195,20 +195,20 @@ The metrics table is initialized with the values specified in the science requir
    'http://localhost:8000/api/metric/'
    >>>
    >>> metric = {
-                  'metric': 'PA1',
-                  'description': 'Photometric Repeatability',
-                  'units': 'millimag',
-                  'minimum': '8',
-                  'design': '5',
-                  'stretch': '3',
-                  'user': '10',
+                  "metric": "PA1",
+                  "description": "Photometric Repeatability",
+                  "units": "millimag",
+                  "minimum": 8,
+                  "design": 5,
+                  "stretch": 3,
+                  "user": 10,
                   }
-   >>> response = requests.post(api['metric'], data=metric, auth=(TEST_USER, TEST_PASSWD))
+   >>> response = requests.post(api['metric'], json=metric, auth=(TEST_USER, TEST_PASSWD))
    >>> response.status_code
    201
 
 
-A job and the result of its measurement can be inserted in a single request given the metric name, example:
+A job and a list of  measurements can be inserted in a single request given the metric name, example:
 
 .. code-block:: python
 
@@ -221,7 +221,7 @@ A job and the result of its measurement can be inserted in a single request give
             "measurements": [{ "metric": "PA1", "value": 5.0}]
          }
 
-   >>> response = requests.post(api['job'], data=job, auth=(TEST_USER, TEST_PASSWD))
+   >>> response = requests.post(api['job'], json=job, auth=(TEST_USER, TEST_PASSWD))
    >>> response.status_code
    201
 
