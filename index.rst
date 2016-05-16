@@ -39,7 +39,8 @@
 
 :tocdepth: 1
 
-Draft in development, to be used by developers in the QA sprint during the extend cycle.
+.. note::
+    Work in progress. This document is the design for the QA dashboard and it is being used by SQuaRE developers during the X16 cycle.
 
 Introduction
 ============
@@ -48,55 +49,50 @@ This document describes the implementation of a prototype dashboard for the
 Science Quality Analysis Harness (SQUASH) system.
 
 As stated in http://sqr-008.lsst.io the verification datasets use case
-gives us the oportunity to leverage QA tests done in the past with pipeQA and more recently with HSC and CFHT QA
-scripts in a comprehensive infrastructure to preserve the codes and practices developed
+gives us the opportunity to leverage QA tests done in the past with pipeQA and more recently with HSC and CFHT QA
+scripts in a comprehensive infrastructure preserving "QA analysis code" and practices developed
 by the verification datasets group.
 
-For level 0 QA, the prototype will test the stability of the single visit processing and QA codes in the LSST
-stack by measuring key performance metrics using a fixed dataset and configuration.
+For **level 0 QA**, the prototype will test the stability of the LSST code against the science requirements for single
+image processing (LPM-17) also known as *key performance metrics* (KPMs) as part of the continuous integration (CI) system.
 
 The development will follow the rapid prototype workflow to reach this goal more
-efficiently. As soon as we have a minimal viable product we'll ship it to production.
-In this process, we want early feedback from users and iterate back on usability issues.
+efficiently. The goal for X16 is to have minimal viable product (MVP) in production.
+This way we get early feedback from users and iterate back to make improvements.
 
-The ultimate goal is to anticipate SQUASH needs for commissioning and to provide feedback to
-the production QA systems based on the experience of testing precursor
+The main goal is to anticipate SQUASH needs for commissioning, and leverage
+the production SDQA system based on the experience of testing the LSST stack on precursor
 datasets.
 
 Selecting the right technology stack
 ====================================
 
 The selected technologies prioritize the use of Python as the 
-main development language, and the use of the selected framework features as much as possible.
+main development language, and a mature framework like Django to facilitate development.
 
-The web application is being developed in Django  and we expect less work
-on this part of the project as the project structure and initial dashboard application
-is done.
-
-The QA database is modeled using the object-relational mapper
-(ORM) built in the Django framework.
-
-The dashboard will use the bokeh plotting library and datashader to
+The dashboard uses the bokeh plotting library and datashader to
 create interactive visualizations.
 
-For level 0 QA, the metrics code (see for instance http://dmtn-008.lsst.io/en/latest/) is an *afterburner* scripts that
-runs on the output of the LSST stack processing. These scripts will be executed as **Jenkins** job as part of continuous
-integration runs.
+For level 0 QA, the QA analysis code is developed as *afterburner* scripts that
+runs on the output of the LSST stack processing (http://dmtn-008.lsst.io/en/latest/)
+These scripts will be executed as jenkins jobs as part of the CI runs an will push data to the QA dashboard
+for monitoring.
 
 For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API linked from the dashboard.
-For sky visualization we plan to integrate Aladin Lite JS plugin. In Aladin, images must be pre-generated in
-HiPS format (http://aladin.u-strasbg.fr/hips/)
+For all-sky visualization we plan to integrate Aladin Lite and HiPS images (http://aladin.u-strasbg.fr/hips/)
 
-The main visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
-has also been taken into consideration.
+The visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
+have been taken into consideration.
 
 
 Architecture
 ============
 
 The architecture of the SQUASH dashboard is shown in figure 1.
-The QA analysis code sends data to the dashboard through a ``POST`` request
-and a ``post_save`` signal from Django is used to update the bokeh sessions.
+The QA database is modeled based on the LSST baseline database schema and adapted to this
+prototype. It is implemented using the object-relational mapper (ORM) built in the Django framework.
+The QA analysis code sends data to the dashboard through a ``POST`` request and a ``post_save`` signal
+from Django is used to automatically update the bokeh sessions (i.e plots and information in the dashboard).
 
 .. figure:: _static/components.png
    :name: fig-components
@@ -106,14 +102,16 @@ and a ``post_save`` signal from Django is used to update the bokeh sessions.
    Main components of SQUASH dashboard prototype.
 
 
-Implementation Phases
-=====================
+Implementation Roadmap
+======================
+
+SQUASH MVP Epic for X16 (https://jira.lsstcorp.org/browse/DM-5555)
 
 Phase 1: Initial Django project and integration with bokeh server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     - DM-5728 Create Django project and initial dashboard app  (See Appendix A)
-        - Implement the ``Job``, ``Metric`` and ``Measurement`` tables in the django ORM layer, as a minimum set of tables for the dashboard app
+        - Implement the ``Job``, ``Metric`` and ``Measurement`` models as a minimum set of tables for the dashboard app
         - Prototype home page and dashboard pages
     - DM-5750 Integration of Django with bokeh server
 
@@ -121,25 +119,33 @@ Phase 2: Integration with QA analysis code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     - DM-5745 implement ingestion code for the QA results
-        - Ability to ingest JSON outputs produced by QA analysis code described in http://dmtn-008.lsst.io/en/latest/
+        - Implement API endpoints for Jobs and Metrics
 
-Phase 3: Adding interactions to the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    - DM-6086 JSON Schema for metric data from validate_drp to be ingested by the QA Dashboard app
 
-    - Ability to select a job and display QA results
-    - Ability to display job information (Jenkins API?)
+Phase 3: Implement software provenance in the dashboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    - DM-5943 Add Git refs to Jobs Table of QA Dashboard
+       - Implement the ``VersionedPackage`` model
+
+
+Phase 4: Adding more interactions to the dashboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    - Ability to link dashboard to the CI runs
+    - Ability to display KPM vs. git commits
     - Ability to navigate through the list of Metrics
 
 
-Phase 4: Adding support to multiple datasets
+SQUASH Epic for F16
+
+Phase 5: Adding support to multiple datasets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     - Add datasets table in the Django ORM layer
     - Ability to access dataset information
     - Ability to display and select available runs for each dataset
-
-Phase 5: Integration with Aladin
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Cloning the project
 ====================
@@ -148,24 +154,18 @@ Cloning the project
 
     $ git clone  https://github.com/lsst-sqre/qa-dashboard.git
 
-Create a virtualenv, install dependencies and work on a specific feature
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: text
+See the README file for instructions.
 
-    $ cd qa-dashboard
-    $ virtualenv env -p python3
-    $ source env/bin/activate
-    $ pip install -r requirements.txt
-    $ python -c "import django; print(django.get_version())"
-    1.8.4
-    $ git branch  # See implementation phases above and pick the feature to work on
-    $ git checkout ticket-NNNN
 
 Level 0 QA
 ==========
 
-For level 0 QA, the data model includes the ``Job``, ``Measurement`` and ``Metric`` tables which are sufficient to
-characterize a metric, its measurement and information about the job that performed the measurement.
+For level 0 QA, the data model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
+characterize a metric and its measurement by the CI job and keep track of the version of the LSST stack code.
+
+.. note::
+
+   Missing ``VersionedPackage`` table and schema updates.
 
 .. figure:: _static/level0-db.png
    :name: fig-level0-db
@@ -208,18 +208,32 @@ The metrics table is initialized with the values specified in the science requir
    201
 
 
-A job and a list of  measurements can be inserted in a single request given the metric name, example:
+A job with a list of measurements and versioned packages can be inserted in a single request given the metric name, example:
 
 .. code-block:: python
 
    >>> job = {
-            "name": "ci_cfht",
-            "build": "1",
-            "runtime": "2016-04-24T19:26:12.561564Z",
-            "url": "https://ci.lsst.codes/job/ci_cfht/1/",
-            "status": 0,
-            "measurements": [{ "metric": "PA1", "value": 5.0}]
-         }
+                "date": "2016-05-13T23:26:43.785264Z",
+                "ci_name": "ci_cfht",
+                "ci_id": "1",
+                "ci_url": "https://ci.lsst.codes/job/ci_cfht/1/",
+                "status": 0,
+                "measurements": [
+                    {
+                        "metric": "PA1",
+                        "value": 5.0
+                    }
+                ],
+                "packages": [
+                    {
+                        "name": "afw",
+                        "git_url": "http://github.com/lsst/afw.git",
+                        "git_commit": "a7aa450f60375473c010319e56db559457b43f9a",
+                        "git_branch": "master",
+                        "build_version": "b1"
+                    }
+                ],
+              }
 
    >>> response = requests.post(api['job'], json=job, auth=(TEST_USER, TEST_PASSWD))
    >>> response.status_code
@@ -229,14 +243,10 @@ A job and a list of  measurements can be inserted in a single request given the 
 Extending the prototype
 =======================
 
-Changing the data model
-^^^^^^^^^^^^^^^^^^^^^^^
+Changing the dashboard API
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   - Edit the models.py and the new property in the model
-   - Use Django to generate a new migration
-   - Change the ingestion script to register the new property
-   - Add the new property in the views.py
-   - Display the new property in a table or plot
+TODO
 
 Adding a new tab in the dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -247,7 +257,6 @@ Adding a new plot to the dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 TODO
-
 
 
 References
@@ -261,8 +270,9 @@ References
  - Model Field Types https://docs.djangoproject.com/en/1.9/ref/models/fields/#model-field-types
  - Use MySQL or MariaDB with your Django Application https://www.digitalocean.com/community/tutorials/how-to-use-mysql-or-mariadb-with-your-django-application-on-ubuntu-14-04
 
-APPENDIX A - Making of the SQUASH  project
-==========================================
+
+APPENDIX A - Making of the squash project
+=========================================
 
 In this appendix we document the initial setup to create
 the Django project (tickets/DM-5728) and its integration with the bokeh server (tickets/DM-5750).
@@ -386,10 +396,121 @@ The ``static`` directory must be defined in the ``squash/settings.py`` file:
         )
 
 
-Integration with bokeh server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Integration with the bokeh server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 TODO
 
+APPENDIX B - JSON schema for SQUASH
+===================================
 
+Adapted from  https://community.lsst.org/t/json-schema-for-squash/777
+
+The purpose of this schema is to consistently describe results from ``validate_drp`` so that they can be reliably consumed by the
+dashboard application and database. Having a schema means:
+
+    - Every new metric will be presented in a way that is consistent with the metrics already provided by validate_drp.
+    - Databases and HTTP APIs can be built to accept this schema. That is, the SQuaSH dashboard's database schema and serialization code must understand and be compatible with this schema.
+    - The validate_drp output will be self-describing.
+
+Our goal is to have ``validate_drp`` output a single JSON file that fully describes the QA run settings and measurements.
+Some of this information won't be known directly by validate_drp, and will instead be inserted into the JSON by the testing harness.
+Ultimately this JSON data structure would be POST'd to the SQuaSH Dashboard API with a single HTTP request.
+Likewise, when an API consumer GETs a QA Job, this is the data structure that will be returned.
+
+
+
+The top-level document: Job
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the QA dashboard, a Job represents a single QA run. This maps to the Job model above.
+
+This Job document wraps everything that is known about a QA run, and is what will be POST'd to the
+SQuaSH dashboard's API for database ingestion.
+
+.. code-block:: json
+
+    {
+       "date": date time when the job was run (ISO 8601, e.g., 2016-05-13T18:27:53+00:00)
+       "measurements": [{measurement document}, ...]
+       "packages": [{ versioned package document}, ...]
+       "ci_name": Jenkins CI job name.
+       "ci_id": Jenkins CI job number
+       "ci_url":  URL of build on Jenkins dashboard
+       "status": Job status (0 = success, 1 = failure)
+    }
+
+In this Job data structure, validate_drp is really only responsible for inserting the date and measurements fields.
+The harness will insert measurements, packages, and other ancillary metadata.
+
+Package sub-document of Job
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Package document attempts to capture versioning information about each Stack package that was used during the QA run.
+A Job contains a list of all Package documents describing the entire Stack. Altogether, these form a pseudo-provenance
+scheme.
+
+This document corresponds to the VersionedPackage model of the QA Dashboard database introduced in DM-5943.
+
+.. code-block:: json
+
+    {
+      "name": EUPS package name, e.g. "afw",
+      "git_url": Git URL of package, e.g. "http://github.com/lsst/afw.git",
+      "git_commit": Git commit SHA1 for package
+      "git_branch": Git branch that commit resides on (e.g., 'master')
+      "build_version": EUPS build version identifier for package
+    }
+
+
+Measurement sub-document of Job
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A Job contains an array of measurements corresponding to metrics.
+
+Each item in the measurement array is a Measurement document, it is the primary document type that ``validate_drp``
+should be concerned with. Measurement documents correspond to the Measurement model above.
+
+.. code-block:: json
+
+    {
+      "metric": metric slug (e.g., AM1)
+      "metric_url": URL linking to this metric's definition in documentation
+      "value": { datum with measurement's scalar value }
+      "parameters": { blob with measurement code parameters }
+      "blob": { blob with extra data about measurement; for plotting }
+    }
+
+
+Blob sub-document of Measurement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Blob document of each Measurement will encapsulate any data about the measurement beyond the main scalar value.
+(While Parameters is for inputs/configurations, Blob is all about the output data).
+Information in the Blob can be used of rich plotting and data science.
+
+Like Parameters, Blob will be stored as a blob in the database so that every metric/measurement can define its own
+schema for this information. Again, every value should be a Datum document to be self-describing.
+
+.. code-block:: json
+
+    {
+      ... blob datum fields
+      "schema_id": "metric-blob-number"
+    }
+
+Datum micro-document
+^^^^^^^^^^^^^^^^^^^^
+
+A Datum is a micro document that wraps all quantities stored in JSON. Datum allows every quantity to be self-describing.
+This will be useful for analysis and plotting codes.
+
+.. code-block:: json
+
+    {
+       "value": numeric value (scalar or array)
+       "units": astropy unit string (http://docs.astropy.org/en/v1.1.2/units/format.html)
+       "label": label suitable for a plot axis (minus units)
+       "description": a longer description
+    }
 
