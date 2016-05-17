@@ -163,10 +163,6 @@ Level 0 QA
 For level 0 QA, the data model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
 characterize a metric and its measurement by the CI job and keep track of the version of the LSST stack code.
 
-.. note::
-
-   Missing ``VersionedPackage`` table and schema updates.
-
 .. figure:: _static/level0-db.png
    :name: fig-level0-db
    :target: _static/level0-db.png
