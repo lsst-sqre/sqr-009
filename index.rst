@@ -209,7 +209,6 @@ A job with a list of measurements and versioned packages can be inserted in a si
 .. code-block:: python
 
    >>> job = {
-                "date": "2016-05-13T23:26:43.785264Z",
                 "ci_name": "ci_cfht",
                 "ci_id": "1",
                 "ci_url": "https://ci.lsst.codes/job/ci_cfht/1/",
@@ -217,7 +216,15 @@ A job with a list of measurements and versioned packages can be inserted in a si
                 "measurements": [
                     {
                         "metric": "PA1",
-                        "value": 5.0
+                        "value": 1.0
+                    },
+                    {
+                        "metric": "AM1",
+                        "value": 2.0
+                    },
+                    {
+                        "metric": "AM2",
+                        "value": 3.0
                     }
                 ],
                 "packages": [
@@ -228,7 +235,7 @@ A job with a list of measurements and versioned packages can be inserted in a si
                         "git_branch": "master",
                         "build_version": "b1"
                     }
-                ],
+                ]
               }
 
    >>> response = requests.post(api['job'], json=job, auth=(TEST_USER, TEST_PASSWD))
