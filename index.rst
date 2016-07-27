@@ -40,7 +40,7 @@
 :tocdepth: 1
 
 .. note::
-    Work in progress. This document is the design for the QA dashboard and it is being used by SQuaRE developers during the X16 cycle.
+    Work in progress. This document is the design for the QA dashboard and it is being used by SQuaRE developers during F16.
 
 Introduction
 ============
@@ -64,25 +64,32 @@ The main goal is to anticipate SQUASH needs for commissioning, and leverage
 the production SDQA system based on the experience of testing the LSST stack on precursor
 datasets.
 
-Selecting the right technology stack
-====================================
+Selecting the technology stack
+==============================
 
 The selected technologies prioritize the use of Python as the 
 main development language, and a mature framework like Django to facilitate development.
 
-The dashboard uses the bokeh plotting library and datashader to
+The dashboard will use the bokeh plotting library (http://bokeh.pydata.org/en/latest/) to
 create interactive visualizations.
 
-For level 0 QA, the QA analysis code is developed as *afterburner* scripts that
-runs on the output of the LSST stack processing (http://dmtn-008.lsst.io/en/latest/)
-These scripts will be executed as jenkins jobs as part of the CI runs an will push data to the QA dashboard
-for monitoring.
+We also are considering to follow Vega-lite specification for generating static plots
+from data (https://vega.github.io/vega-lite/).
 
-For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API linked from the dashboard.
-For all-sky visualization we plan to integrate Aladin Lite and HiPS images (http://aladin.u-strasbg.fr/hips/)
+For level 0 QA, the QA analysis code is developed as *afterburner* scripts
+running on the outputs of the LSST stack processing for a fixed dataset (http://dmtn-008.lsst.io/en/latest/) using the measurements
+framework being developed by SQuaRE (https://validate-drp.lsst.io/v/DM-6917/).
+
+These scripts are be executed as part of the CI system an push data to the QA dashboard
+for monitoring the LSST Science Requirements. ``post_qa`` (https://github.com/lsst-sqre/post-qa) is the component responsible to assemble the JSON with the information
+posted to the dashboard API.
+
+For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API (https://github.com/lsst/firefly/blob/master/docs/fftools-api-overview.md)
+or *opensource* third party tools that complement FFTools like Aladin Lite + HiPS image format (http://aladin.u-strasbg.fr/hips/)
+or visiOmatic + PTIF image format (https://github.com/astromatic/visiomatic) for all-sky/patch/exposure/ccd level visualization.
 
 The visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
-have been taken into consideration.
+are also being taken into consideration.
 
 
 Architecture
@@ -102,50 +109,12 @@ from Django is used to automatically update the bokeh sessions (i.e plots and in
    Main components of SQUASH dashboard prototype.
 
 
-Implementation Roadmap
-======================
+Implementation Phases
+=====================
 
-SQUASH MVP Epic for X16 (https://jira.lsstcorp.org/browse/DM-5555)
+  - SQUASH MVP for X16 (https://jira.lsstcorp.org/browse/DM-5555)
+  - SQUASH extended MVP for F16 (https://jira.lsstcorp.org/browse/DM-6196)
 
-Phase 1: Initial Django project and integration with bokeh server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    - DM-5728 Create Django project and initial dashboard app  (See Appendix A)
-        - Implement the ``Job``, ``Metric`` and ``Measurement`` models as a minimum set of tables for the dashboard app
-        - Prototype home page and dashboard pages
-    - DM-5750 Integration of Django with bokeh server
-
-Phase 2: Integration with QA analysis code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    - DM-5745 implement ingestion code for the QA results
-        - Implement API endpoints for Jobs and Metrics
-
-    - DM-6086 JSON Schema for metric data from validate_drp to be ingested by the QA Dashboard app
-
-Phase 3: Implement software provenance in the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    - DM-5943 Add Git refs to Jobs Table of QA Dashboard
-       - Implement the ``VersionedPackage`` model
-
-
-Phase 4: Adding more interactions to the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    - Ability to link dashboard to the CI runs
-    - Ability to display KPM vs. git commits
-    - Ability to navigate through the list of Metrics
-
-
-SQUASH Epic for F16
-
-Phase 5: Adding support to multiple datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    - Add datasets table in the Django ORM layer
-    - Ability to access dataset information
-    - Ability to display and select available runs for each dataset
 
 Cloning the project
 ====================
@@ -209,9 +178,11 @@ A job with a list of measurements and versioned packages can be inserted in a si
 .. code-block:: python
 
    >>> job = {
-                "ci_name": "ci_cfht",
                 "ci_id": "1",
-                "ci_url": "https://ci.lsst.codes/job/ci_cfht/1/",
+                "ci_name": "validate_drp",
+                "ci_dataset": "cfht",
+                "ci_label": "centos-7",
+                "ci_url": "https://ci.lsst.codes/job/validate_drp/1/",
                 "status": 0,
                 "measurements": [
                     {
@@ -242,24 +213,6 @@ A job with a list of measurements and versioned packages can be inserted in a si
    >>> response.status_code
    201
 
-
-Extending the prototype
-=======================
-
-Changing the dashboard API
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TODO
-
-Adding a new tab in the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TODO
-
-Adding a new plot to the dashboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TODO
 
 
 References
@@ -402,7 +355,8 @@ The ``static`` directory must be defined in the ``squash/settings.py`` file:
 Integration with the bokeh server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO
+- https://jira.lsstcorp.org/browse/DM-5750
+
 
 APPENDIX B - JSON schema for SQUASH
 ===================================
