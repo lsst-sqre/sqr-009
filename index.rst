@@ -125,11 +125,11 @@ Cloning the project
 
 See the README file for instructions.
 
-QA-0 database
-=============
+The dashboard API
+=================
 
-For QA-0, the data model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
-characterize a metric and its measurement by the CI job and keep track of the version of the LSST stack code.
+For QA-0, the databade model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
+characterize a metric and its measurement by the CI job and keep track of the version of the LSST software stack.
 
 .. figure:: _static/level0-db.png
    :name: fig-level0-db
@@ -151,7 +151,7 @@ The metrics table is initialized with the values specified in the science requir
 .. code-block:: python
 
    >>> import requests
-   >>> response = requests.get('http://localhost:8000/api/')
+   >>> response = requests.get('http://localhost:8000/dashboard/api/')
    >>> response.status_code
    200
    >>> api = response.json()
@@ -212,7 +212,28 @@ A job with a list of measurements and versioned packages can be inserted with a 
    >>> response.status_code
    201
 
+Using the API
+^^^^^^^^^^^^^
 
+Retrieving metrics:
+
+``http://localhost:8000/dashboard/api/metrics/``
+
+Retrieving datasets:
+
+``http://localhost:8000/dashboard/api/datasets/``
+
+Retieving jobs:
+
+``http://localhost:8000/dashboard/api/jobs/``
+
+Searching by job id:
+
+``http://localhost:8000/dashboard/api/jobs/?search=2``
+
+Filtering by dataset:
+
+``http://localhost:8000/dashboard/api/jobs/?ci_dataset=decam``
 
 References
 ==========
