@@ -49,26 +49,28 @@ This document describes the implementation of a prototype dashboard for the
 Science Quality Analysis Harness (SQUASH) system.
 
 As stated in http://sqr-008.lsst.io the verification datasets use case
-gives us the opportunity to leverage QA tests done in the past with pipeQA and more recently with HSC and CFHT QA
-scripts in a comprehensive infrastructure preserving "QA analysis code" and practices developed
+gives us the opportunity to leverage QA tests done in the past with pipeQA and more recently with HSC, DECam and CFHT in
+a comprehensive infrastructure preserving the "QA analysis code" and practices developed
 by the verification datasets group.
 
-For **level 0 QA**, the prototype will test the stability of the LSST code against the science requirements for single
-image processing (LPM-17) also known as *key performance metrics* (KPMs) as part of the continuous integration (CI) system.
+For **QA-0**, the QA analysis code run as part of the CI system an push data to the QA dashboard for testing the stability
+of the LSST software against the science requirements for single image processing (LPM-17), also known as
+*key performance metrics* (KPMs).
 
-The development will follow the rapid prototype workflow to reach this goal more
-efficiently. The goal for X16 is to have minimal viable product (MVP) in production.
-This way we get early feedback from users and iterate back to make improvements.
+The development will follow a rapid prototype workflow to reach this goal more
+efficiently. The goal for X16 was to have a minimal viable product (MVP) in production computing a few metrics in a single
+dataset. For F16 we will extend support for multiple datasets and plan to compute more metrics.
+This way we get early feedback from users and iterate to improve the system.
 
 The main goal is to anticipate SQUASH needs for commissioning, and leverage
-the production SDQA system based on the experience of testing the LSST stack on precursor
+the production SDQA system based on the experience of testing the LSST software on precursor
 datasets.
 
 Selecting the technology stack
 ==============================
 
-The selected technologies prioritize the use of Python as the 
-main development language, and a mature framework like Django to facilitate development.
+The selected technologies prioritize the use of Python as the
+main development language, and a mature web framework like Django.
 
 The dashboard will use the bokeh plotting library (http://bokeh.pydata.org/en/latest/) to
 create interactive visualizations.
@@ -76,16 +78,14 @@ create interactive visualizations.
 We also are considering to follow Vega-lite specification for generating static plots
 from data (https://vega.github.io/vega-lite/).
 
-For level 0 QA, the QA analysis code is developed as *afterburner* scripts
-running on the outputs of the LSST stack processing for a fixed dataset (http://dmtn-008.lsst.io/en/latest/) using the measurements
+The QA analysis code run on the output data repositories (http://dmtn-008.lsst.io/en/latest/) using the measurements
 framework being developed by SQuaRE (https://validate-drp.lsst.io/v/DM-6917/).
 
-These scripts are be executed as part of the CI system an push data to the QA dashboard
-for monitoring the LSST Science Requirements. ``post_qa`` (https://github.com/lsst-sqre/post-qa) is the component responsible to assemble the JSON with the information
-posted to the dashboard API.
+``post_qa`` (https://github.com/lsst-sqre/post-qa) is the component responsible to assemble the JSON with the information
+to be pushed to the QA dashboard.
 
-For level 1 and 2 QA, FITS image visualization will be added using FFTools JS API (https://github.com/lsst/firefly/blob/master/docs/fftools-api-overview.md)
-or *opensource* third party tools that complement FFTools like Aladin Lite + HiPS image format (http://aladin.u-strasbg.fr/hips/)
+For QA-1 and QA-2, FITS image visualization will be added using FFTools JS API (https://github.com/lsst/firefly/blob/master/docs/fftools-api-overview.md)
+or *opensource* third party tools like Aladin Lite + HiPS image format (http://aladin.u-strasbg.fr/hips/)
 or visiOmatic + PTIF image format (https://github.com/astromatic/visiomatic) for all-sky/patch/exposure/ccd level visualization.
 
 The visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
@@ -96,15 +96,15 @@ Architecture
 ============
 
 The architecture of the SQUASH dashboard is shown in figure 1.
-The QA database is modeled based on the LSST baseline database schema and adapted to this
-prototype. It is implemented using the object-relational mapper (ORM) built in the Django framework.
-The QA analysis code sends data to the dashboard through a ``POST`` request and a ``post_save`` signal
-from Django is used to automatically update the bokeh sessions (i.e plots and information in the dashboard).
+The QA-0 DB is modeled based on the current LSST baseline database schema and is adapted to this
+prototype. It is implemented using the object-relational mapper (ORM) built in the Django framework and exposed
+to the dashboard through a REST API developed in DRF (Django REST Framework). This architecture makes it easy to
+replace the QA-0 DB and Django REST API by WebServ and QAserv queries later (https://confluence.lsstcorp.org/display/DM/Winter+2016+Qserv+and+Webserv+Release)
 
 .. figure:: _static/components.png
    :name: fig-components
    :target: _static/components.png
-   :alt: Main components of the SQUASH prototype 
+   :alt: Main components of the SQUASH prototype
 
    Main components of SQUASH dashboard prototype.
 
@@ -125,11 +125,10 @@ Cloning the project
 
 See the README file for instructions.
 
+QA-0 database
+=============
 
-Level 0 QA
-==========
-
-For level 0 QA, the data model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
+For QA-0, the data model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
 characterize a metric and its measurement by the CI job and keep track of the version of the LSST stack code.
 
 .. figure:: _static/level0-db.png
@@ -137,7 +136,7 @@ characterize a metric and its measurement by the CI job and keep track of the ve
    :target: _static/level0-db.png
    :alt: Level 0 database schema
 
-   Level 0 database schema.
+   QA-0 database schema.
 
 The metrics table is initialized with the values specified in the science requirements document LPM-17, example:
 
@@ -173,7 +172,7 @@ The metrics table is initialized with the values specified in the science requir
    201
 
 
-A job with a list of measurements and versioned packages can be inserted in a single request given the metric name, example:
+A job with a list of measurements and versioned packages can be inserted with a single request given the metric name, example:
 
 .. code-block:: python
 
@@ -218,12 +217,14 @@ A job with a list of measurements and versioned packages can be inserted in a si
 References
 ==========
 
- - Rapid Prototyping
+ - LSE-63 Data Quality Assurrance Plan
+ - LPM-17 Science Requirements Document
+ - LDM-135: Database Design (http://ldm-135.readthedocs.io/en/master/)
+ - LSST Database Schema, baseline version (https://lsst-web.ncsa.illinois.edu/schema/index.php?sVer=baseline)
  - Bokeh webminar
  - Dashboard webminar
  - HiPS: http://aladin.u-strasbg.fr/hips/
- - Django Database API Reference https://docs.djangoproject.com/en/1.9/topics/db/queries/
- - Model Field Types https://docs.djangoproject.com/en/1.9/ref/models/fields/#model-field-types
+ - Django REST Framework
  - Use MySQL or MariaDB with your Django Application https://www.digitalocean.com/community/tutorials/how-to-use-mysql-or-mariadb-with-your-django-application-on-ubuntu-14-04
 
 
@@ -322,7 +323,7 @@ the new models here ``dashboard/admin.py`` in order to see the tables from the D
 
     from django.contrib import admin
     from .models import Dataset, Visit, Ccd
-    
+
     admin.site.register(Dataset)
     admin.site.register(Visit)
     admin.site.register(Ccd)
