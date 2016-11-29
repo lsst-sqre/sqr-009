@@ -40,7 +40,7 @@
 :tocdepth: 1
 
 .. note::
-    Work in progress. This document is the design for the QA dashboard and it is being used by SQuaRE developers during F16.
+    Work in progress. This document is the design for the QA dashboard and it is being used by SQuaRE developers during F16 and beyond.
 
 Introduction
 ============
@@ -48,58 +48,61 @@ Introduction
 This document describes the implementation of a prototype dashboard for the
 Science Quality Analysis Harness (SQUASH) system.
 
-As stated in http://sqr-008.lsst.io the verification datasets use case
-gives us the opportunity to leverage QA tests done in the past with pipeQA and more recently with HSC, DECam and CFHT in
-a comprehensive infrastructure preserving the "QA analysis code" and practices developed
-by the verification datasets group.
+As stated in the `SQUASH QA Database Design <http://sqr-008.lsst.io>`_ the verification data sets use case
+gives us the opportunity to leverage the QA tests done in the past with pipeQA and more recently with HSC, DECam and CFHT in
+a comprehensive infrastructure preserving the code and practices developed by the verification datasets group.
 
-For **QA-0**, the QA analysis code run as part of the CI system an push data to the QA dashboard for testing the stability
-of the LSST software against the science requirements for single image processing (LPM-17), also known as
-*key performance metrics* (KPMs).
+For **QA-0**, SQUASH run the QA tests as an afterburner an pushes the results to a QA dashboard. That is integrated to the CI system
+for checking the stability of the LSST software against the science requirements for single image processing
+(see `LPM-17 <https://docushare.lsstcorp.org/docushare/dsweb/Services/LPM-17>`_), also known as *key performance metrics* (KPMs).
 
 The development will follow a rapid prototype workflow to reach this goal more
-efficiently. The goal for X16 was to have a minimal viable product (MVP) in production computing a few metrics in a single
-dataset. For F16 we will extend support for multiple datasets and plan to compute more metrics.
-This way we get early feedback from users and iterate to improve the system.
+efficiently. The goal for X16 was to have a minimal viable product (MVP) in production computing a few metrics for one dataset
+(chft). For F16 we extended the dashboard adding support to multiple datasets and implemented the **Code Changes** feature
+to monitor the commits that had impact on the KPMs.
 
-The main goal is to anticipate SQUASH needs for commissioning, and leverage
-the production SDQA system based on the experience of testing the LSST software on precursor
+The current implementation can be found at https://squash.lsst.codes/
+
+We expect to get early feedback from users and iterate to improve the system. The main goal is to anticipate SQUASH needs
+for commissioning, and leverage the production SDQA system based on the experience of testing the LSST software on precursor
 datasets.
+
 
 Selecting the technology stack
 ==============================
 
 The selected technologies prioritize the use of Python as the
-main development language, and a mature web framework like Django.
+main development language, a mature framework like `Django DRF <http://www.django-rest-framework.org/>`_ and the `Bokeh
+plotting library <http://bokeh.pydata.org/en/latest>`_ to create interactive visualization.
 
-The dashboard will use the bokeh plotting library (http://bokeh.pydata.org/en/latest/) to
-create interactive visualizations.
+We also are considering to follow `Vega-lite specification <https://vega.github.io/vega-lite/>`_ for plot data.
 
-We also are considering to follow Vega-lite specification for generating static plots
-from data (https://vega.github.io/vega-lite/).
+The `QA analysis <http://dmtn-008.lsst.io/en/latest/>`_ is being refactored to use the `Measurements API
+<https://validate-drp.lsst.io/v/DM-6917/>`_ being developed by SQuaRE.
 
-The QA analysis code run on the output data repositories (http://dmtn-008.lsst.io/en/latest/) using the measurements
-framework being developed by SQuaRE (https://validate-drp.lsst.io/v/DM-6917/).
+Another component called `post_qa <https://github.com/lsst-sqre/post-qa>`_ is responsible to shim the information from
+the CI run and push all the results to the QA dashboard.
 
-``post_qa`` (https://github.com/lsst-sqre/post-qa) is the component responsible to assemble the JSON with the information
-to be pushed to the QA dashboard.
+For QA-1 and QA-2, we plan to add FITS image visualization using `FFTools JS API <https://github.com/lsst/firefly/blob/master/docs/fftools-api-overview.md>`_
+or *opensource* third party tools like `Aladin Lite + HiPS image format <http://aladin.u-strasbg.fr/hips/>`_
+or `visiOmatic + PTIF image format <https://github.com/astromatic/visiomatic>`_.
 
-For QA-1 and QA-2, FITS image visualization will be added using FFTools JS API (https://github.com/lsst/firefly/blob/master/docs/fftools-api-overview.md)
-or *opensource* third party tools like Aladin Lite + HiPS image format (http://aladin.u-strasbg.fr/hips/)
-or visiOmatic + PTIF image format (https://github.com/astromatic/visiomatic) for all-sky/patch/exposure/ccd level visualization.
-
-The visualization needs, as summarized at https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit
-are also being taken into consideration.
+Other `project visualization needs <https://dev.lsstcorp.org/trac/wiki/Winter2014/Design/DataAnalysisToolkit>`_
+are also being considered.
 
 
 Architecture
 ============
 
-The architecture of the SQUASH dashboard is shown in figure 1.
-The QA-0 DB is modeled based on the current LSST baseline database schema and is adapted to this
-prototype. It is implemented using the object-relational mapper (ORM) built in the Django framework and exposed
-to the dashboard through a REST API developed in DRF (Django REST Framework). This architecture makes it easy to
-replace the QA-0 DB and Django REST API by WebServ and QAserv queries later (https://confluence.lsstcorp.org/display/DM/Winter+2016+Qserv+and+Webserv+Release)
+The architecture of the SQUASH dashboard is shown in Figure 1.
+The QA-0 DB is modeled based on the current LSST baseline database schema adapted for this
+prototype.
+
+The implemented uses the object-relational mapper (ORM) built in the Django framework and exposed
+to the dashboard through a REST API.
+
+This choice makes it easy to replace the QA-0 DB and Django REST API by
+`WebServ and QAserv <https://confluence.lsstcorp.org/display/DM/Winter+2016+Qserv+and+Webserv+Release>`_ later on.
 
 .. figure:: _static/components.png
    :name: fig-components
@@ -109,27 +112,20 @@ replace the QA-0 DB and Django REST API by WebServ and QAserv queries later (htt
    Main components of SQUASH dashboard prototype.
 
 
-Implementation Phases
+Implementation Epics
 =====================
 
-  - SQUASH MVP for X16 (https://jira.lsstcorp.org/browse/DM-5555)
-  - SQUASH extended MVP for F16 (https://jira.lsstcorp.org/browse/DM-6196)
+  - SQUASH MVP for X16 (`DM-5555 <https://jira.lsstcorp.org/browse/DM-5555>`_)
+  - SQUASH extended MVP for F16 (`DM-6196 <https://jira.lsstcorp.org/browse/DM-6196>`_)
+  - SQUASH extended MVP II
 
-
-Cloning the project
-====================
-
-.. code-block:: text
-
-    $ git clone  https://github.com/lsst-sqre/qa-dashboard.git
-
-See the README file for instructions.
 
 The dashboard API
 =================
 
-For QA-0, the databade model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are sufficient to
-characterize a metric and its measurement by the CI job and keep track of the version of the LSST software stack.
+For QA-0, the databade model includes the ``Job``, ``Measurement``, ``Metric`` and ``VersionedPackage`` tables which are
+sufficient to characterize a metric and its measurement by the CI job and keep track of the version of all packages in the
+LSST software stack.
 
 .. figure:: _static/level0-db.png
    :name: fig-level0-db
@@ -215,38 +211,24 @@ A job with a list of measurements and versioned packages can be inserted with a 
 Using the API
 ^^^^^^^^^^^^^
 
-Retrieving metrics:
+Searching jobs by CI ID:
 
-``http://localhost:8000/dashboard/api/metrics/``
+``https://squash.lsst.codes/dashboard/api/jobs/?search=200``
 
-Retrieving datasets:
+Filtering measurements by data set and metric:
 
-``http://localhost:8000/dashboard/api/datasets/``
+``https://squash.lsst.codes/dashboard/api/measurements/?job__ci_dataset=cfht&metric=AM1``
 
-Retieving jobs:
-
-``http://localhost:8000/dashboard/api/jobs/``
-
-Searching by job id:
-
-``http://localhost:8000/dashboard/api/jobs/?search=2``
-
-Filtering by dataset:
-
-``http://localhost:8000/dashboard/api/jobs/?ci_dataset=decam``
 
 References
 ==========
 
  - LSE-63 Data Quality Assurrance Plan
  - LPM-17 Science Requirements Document
- - LDM-135: Database Design (http://ldm-135.readthedocs.io/en/master/)
- - LSST Database Schema, baseline version (https://lsst-web.ncsa.illinois.edu/schema/index.php?sVer=baseline)
- - Bokeh webminar
- - Dashboard webminar
- - HiPS: http://aladin.u-strasbg.fr/hips/
+ - `LDM-135: Database Design <http://ldm-135.readthedocs.io/en/master/>`_
+ - `LSST baseline Database Schema <https://lsst-web.ncsa.illinois.edu/schema/index.php?sVer=baseline>`_
+ - `HiPS <http://aladin.u-strasbg.fr/hips/>`_
  - Django REST Framework
- - Use MySQL or MariaDB with your Django Application https://www.digitalocean.com/community/tutorials/how-to-use-mysql-or-mariadb-with-your-django-application-on-ubuntu-14-04
 
 
 APPENDIX A - Making of the squash project
@@ -255,33 +237,18 @@ APPENDIX A - Making of the squash project
 In this appendix we document the initial setup to create
 the Django project (tickets/DM-5728) and its integration with the bokeh server (tickets/DM-5750).
 
-Creating the django project
+Creating the squash project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
 
     $ django-admin.py startproject squash
 
-Running this command creates a new directory called squash, there is a ``manage.py`` file which is used to manage a
+Running this command creates a new directory called squash, the  ``manage.py`` file is used to manage a
 number of aspects of the Django application such as creating the database and running the development web server.
-Two other important files are ``squash/settings.py`` which contains configuration information for the application
+Two other important files are ``squash/settings.py`` which contains the project settings
 such as how to connect to the database and ``squash/urls.py`` which maps URLs called by the browser
 to the appropriate Python code.
-
-Setting up the database
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: text
-
-    $ cd squash
-    $ python manage.py migrate
-    $ python manage.py createsuperuser
-
-After running this command, there will be a database file ``db.sqlite3`` in the same directory as ``manage.py``. SQLite works
-great for development, in production we will probably use MySQL. This command looks at ``INSTALLED_APPS`` in
-``squash/settings.py`` and creates database tables for them. There are a number apps e.g ``admin``, ``auth`` and ``sessions``
-installed by default.
-
 
 Creating the dashboard app
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -308,52 +275,110 @@ let Django knows about its existence by adding the new app at ``INSTALLED_APPS``
         'dashboard',
     )
 
+Next step is to create the `app models <.
 
+Setting up the database
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Let's create the models for ``Datasets``, ``Visit`` and ``Ccds`` by writing the corresponding classes in the
-``dashboard/models.py`` file, that is a minimum set of tables needed to make the dashboard useful.
+SQuaSH uses MySQL/MariaDB for the development and production databases, it is implemented through the Django-MySQL
+package to add specific features of MySQL/MariaDB to Django. In particular, we are interested in the JSON data type
+to store the ``validate_drp`` outputs. That seems very convenient as these outputs can varie widely and we don't want to
+to turn all the details into a relational model.
+
+1. Install MySQL and create the development database
+
+Using brew:
 
 .. code-block:: text
 
-    $ python manage.py makemigrations
-    Migrations for 'dashboard':
-        0001_initial.py:
-            - Create model Ccd
-            - Create model Dataset
-            - Create model Visit
-            - Add field visitId to ccd
+    brew install mysql
+    mysql.server start
+    mysql -u root -e "CREATE DATABASE squash"
+
+2. Package dependencies
+
+Add the following to the project ``requirements.txt``
 
 .. code-block:: text
 
-    $ python manage.py migrate
-    Operations to perform:
-      Synchronize unmigrated apps: staticfiles, messages
-      Apply all migrations: sessions, admin, auth, contenttypes, dashboard
-    Synchronizing apps without migrations:
-      Creating tables...
-        Running deferred SQL...
-      Installing custom SQL...
-    Running migrations:
-      Rendering model states... DONE
-      Applying dashboard.0001_initial... OK
+    django-mysql==1.1.0
+    mysqlclient==1.3.9
 
-Migrations are Django’s way of managing changes to models and the corresponding database tables. You have to register
-the new models here ``dashboard/admin.py`` in order to see the tables from the Django admin interface.
+3. Add django-mysql and configure the database in the project settings
+
+.. code-block:: text
+
+    INSTALLED_APPS = (
+         ...
+         'django_mysql',
+     )
+
+    DATABASES = {
+         'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME' : 'squash',
+            'USER': 'root',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '3306',
+            'OPTIONS': {
+                  'charset': 'utf8mb4',
+            },
+            'TEST': {
+                'CHARSET': 'utf8mb4',
+                'COLLATION': 'utf8mb4_unicode_ci',
+            },
+        }
+
+See note about `supporting full Unicode in MySQL databases <http://django-mysql.readthedocs.io/en/latest/checks.html#django-mysql-w003-utf8mb4>`_.
+
+
+
+4. Using the JSONField data type in your model
 
 .. code-block:: python
 
-    from django.contrib import admin
-    from .models import Dataset, Visit, Ccd
+    from django.db import models
+    from django_mysql.models import JSONField, Model
 
-    admin.site.register(Dataset)
-    admin.site.register(Visit)
-    admin.site.register(Ccd)
+    class Measurement(Model):
+    """Store metric measurements associate to a job"""
+        metric = models.ForeignKey(Metric, null=False)
+        job = models.ForeignKey(Job, null=False, related_name='measurements')
+        value = JSONField()
 
-Start up the development server and navigate to the admin site http://localhost:8000/admin/ to see the new tables:
+     def __float__(self):
+         return self.value
+
+
+As a result the new ``value`` field accepts basically anything that is supported by ``json.dumps``, example:
+
+.. code-block:: python
+
+    measurement.value = "a string"
+    measurement.value = 1
+    measurement.value = 0.3
+    measurement.value = ["a", "list"]
+    measurement.value = {"a": "dict"}
+
+5. Finally initialize the development database
 
 .. code-block:: text
 
-    $ python manage.py runserver
+    # Check your settings first
+    python manage.py check
+
+    # The password created here is used to access the django admin interface
+    export TEST_USER=<user for the development database>
+    export TEST_USER_EMAIL="$TEST_USER@example.com"
+
+    python manage.py createsuperuser --username $TEST_USER --email $TEST_USER_EMAIL
+
+    # Implement the models
+    python manage.py makemigrations
+    python manage.py migrate
+
+
 
 
 Prototype layouts
