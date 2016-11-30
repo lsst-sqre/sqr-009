@@ -282,16 +282,16 @@ Setting up the database
 
 SQuaSH uses MySQL/MariaDB for the development and production databases, it is implemented through the Django-MySQL
 package to add specific features of MySQL/MariaDB to Django. In particular, we are interested in the JSON data type
-to store the ``validate_drp`` outputs. That seems very convenient as these outputs can varie widely and we don't want to
+to store the ``validate_drp`` outputs. That seems very convenient as these outputs can vary widely and we don't want to
 to turn all the details into a relational model.
 
-1. Install MySQL and create the development database
+1. Install MySQL 5.7+ or MariaDB 10.1+ and create the development database
 
 Using brew:
 
 .. code-block:: text
 
-    brew install mysql
+    brew install mysql  (or mariadb)
     mysql.server start
     mysql -u root -e "CREATE DATABASE squash"
 
