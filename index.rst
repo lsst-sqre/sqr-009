@@ -275,7 +275,7 @@ let Django knows about its existence by adding the new app at ``INSTALLED_APPS``
         'dashboard',
     )
 
-Next step is to create the `app models <.
+Next step is to create the app models.
 
 Setting up the database
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -432,7 +432,7 @@ In the QA dashboard, a Job represents a single QA run. This maps to the Job mode
 This Job document wraps everything that is known about a QA run, and is what will be POST'd to the
 SQuaSH dashboard's API for database ingestion.
 
-.. code-block:: json
+.. code-block:: text
 
     {
        "date": date time when the job was run (ISO 8601, e.g., 2016-05-13T18:27:53+00:00)
@@ -456,7 +456,7 @@ scheme.
 
 This document corresponds to the VersionedPackage model of the QA Dashboard database introduced in DM-5943.
 
-.. code-block:: json
+.. code-block:: text
 
     {
       "name": EUPS package name, e.g. "afw",
@@ -475,7 +475,7 @@ A Job contains an array of measurements corresponding to metrics.
 Each item in the measurement array is a Measurement document, it is the primary document type that ``validate_drp``
 should be concerned with. Measurement documents correspond to the Measurement model above.
 
-.. code-block:: json
+.. code-block:: text
 
     {
       "metric": metric slug (e.g., AM1)
@@ -496,7 +496,7 @@ Information in the Blob can be used of rich plotting and data science.
 Like Parameters, Blob will be stored as a blob in the database so that every metric/measurement can define its own
 schema for this information. Again, every value should be a Datum document to be self-describing.
 
-.. code-block:: json
+.. code-block:: text
 
     {
       ... blob datum fields
@@ -509,7 +509,7 @@ Datum micro-document
 A Datum is a micro document that wraps all quantities stored in JSON. Datum allows every quantity to be self-describing.
 This will be useful for analysis and plotting codes.
 
-.. code-block:: json
+.. code-block:: text
 
     {
        "value": numeric value (scalar or array)
