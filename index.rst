@@ -77,9 +77,9 @@ shown in figure 1.
 The general instructions to deploy squash are found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
 
    * `squash-db <https://github.com/lsst-sqre/squash-db>`_: currently uses MariaDB 10.3+ but soon will migrate to MySQL 5.7 because of the MySQL support to JSON data types. We opted for a relational database because the QC database will be deployed to the Oracle *consolidated database* that will be part of the DAC.
-   * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ and but will migrate to Flask. It is used to manage the SQuaSH metric dashboard.
+   * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ but will migrate to Flask soon. It is used to manage the SQuaSH metrics dashboard.
    * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
-   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps alternatively we can embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
+   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
 
 Implementation Road Map
@@ -111,7 +111,7 @@ SQuaSH in the context of the LSST Science Platform
 Appendix
 ========
 
-The QC database
+The QC-0 database
 ---------------
 
 The SQuaSH RESTful API
