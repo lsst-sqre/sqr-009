@@ -1,6 +1,6 @@
-###########################
-SQR-009 SQuaRE QA Dashboard
-###########################
+####################################
+SQR-009 The SQuaSH metrics dashboard
+####################################
 
 SQuaRE QA Dashboard design
 
