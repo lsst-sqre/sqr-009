@@ -13,14 +13,14 @@ serial_number: '009'
 doc_id: 'SQR-009'
 
 # Title of the document, without the series/serial designation
-doc_title: 'SQUASH dashboard prototype'
+doc_title: 'The SQuaSH metrics dashboard'
 
 # Author names, ordered as a list. Each author name should be formatted as 'First Last'
 authors:
     - 'Angelo Fausti'
 
 # Current document version
-last_revised: '2016-11-29'
+last_revised: '2017-12-15'
 
 # Version. Use Semvar, e.g., 1.0, including .dev, as necessary
 # This version string should correspond to the git tag when the document is published on Zenodo
@@ -31,10 +31,11 @@ version: '1.0'
 # doi: 10.5281/zenodo.#####
 
 # Copyright statement
-copyright: '2016, AURA/LSST'
+copyright: '2017 AURA/LSST'
 
 # Description. A short, 1-2 sentence statemement used by document indices.
-description: 'SQUASH QA dashboard design'
+description: 'The SQuaSH dashboard is used to monitor the KPM metrics computed by the LSST verification framework,
+here we describe its design and implementation details.'
 
 # Abstract, if available
 # abstract: >
