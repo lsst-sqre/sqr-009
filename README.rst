@@ -2,7 +2,8 @@
 SQR-009 The SQuaSH metrics dashboard
 ####################################
 
-SQuaRE QA Dashboard design
+The SQuaSH dashboard is used to monitor the KPM metrics computed by the LSST verification framework,
+here we describe its design and implementation details.
 
 View this technote at http://sqr-009.lsst.io or see a preview of the
 current version in `this repo`_
