@@ -82,9 +82,17 @@ The general instructions to deploy squash are found at `squash-deployment <https
    * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
 
-Implementation Road Map
-=======================
+SQuaSH in the context of Continuous Integration
+===============================================
 
+In the current implementation, SQuaSH supports `lsst.very` packages that run through the CI system and stores the corresponding metadata and data blobs.
+
+Drill down capability
+---------------------
+
+
+Implementation Road Map
+-----------------------
 Support the verification packages:
 
    * validate_drp
@@ -92,27 +100,34 @@ Support the verification packages:
    * ap_verify
 
 
-Drill down capability
-=====================
-
-
-Job execution capability
-========================
-
 Commissioning Extensions for SQuaSH
 ===================================
-
    * https://confluence.lsstcorp.org/display/LSSTCOM/Commissioning+Extensions+for+SQuaSH
 
 
+Data access investigations
+--------------------------
+
+Job execution capability
+------------------------
+
 SQuaSH in the context of the LSST Science Platform
 ==================================================
+
 
 Appendix
 ========
 
 The QC-0 database
----------------
+-----------------
+
+Current database schema for QC-0
+
+.. figure:: _static/qc-0-db.png
+   :name: QC-0 Database
+   :target: _static/qc-0-db.png
+   :alt: QC-0 Database
+
 
 The SQuaSH RESTful API
 ----------------------
@@ -120,6 +135,4 @@ The SQuaSH RESTful API
 Data visualization with bokeh
 -----------------------------
 
-Data access investigations
---------------------------
 
