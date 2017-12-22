@@ -51,7 +51,7 @@ The verification of the LSST software stack performance on simulated data and on
 
 For **QA-0** we compute the Key Performance Metrics (KPMs) on *fixed* data sets through the CI system using the daily builds of the LSST software stack and send these results to a metrics dashboard that is used to monitor the stability of the code.
 
-The KPMs are computed by afterburner packages such as `validate_drp` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_.\
+The KPMs are computed by afterburner packages such as ``validate_drp`` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_.\
 
 
 The current implementation of the SQuaSH metrics dashboard can be found at https://squash.lsst.codes/.
@@ -80,6 +80,7 @@ The general instructions to deploy squash are found at `squash-deployment <https
    * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ but will migrate to Flask soon. It is used to manage the SQuaSH metrics dashboard.
    * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
    * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
+
 
 
 SQuaSH in the context of Continuous Integration
@@ -118,6 +119,24 @@ SQuaSH in the context of the LSST Science Platform
 Appendix
 ========
 
+Support for multiple execution environments
+-------------------------------------------
+In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster and probably others. As a consequence, the information displayed will change depending on the execution environment.
+
+In order to support multiple execution environments the *Verification Job* must map the corresponding environment attribute and keep environment metadata as suggested below:
+
+
+   * Jenkins CI
+      * Natural key: ID of the CI run
+      * Metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
+   * User local environment (imply support to multiple users)
+      * Natural Key: ID of the user run
+      * Metadata: lsstsw and extra packages
+   * Verification Cluster
+      * Natural Key: ID of the vrification cluster run.
+      * Metadata: lsst stack build (assuming we are using stable versions of the stack only), here we'll probably need the ability to change/save the stack configuration used in each run.
+
+
 The QC-0 database
 -----------------
 
@@ -132,7 +151,30 @@ Current database schema for QC-0
 The SQuaSH RESTful API
 ----------------------
 
-Data visualization with bokeh
------------------------------
+Sending data to SQuaSH
+----------------------
+
+First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io/install/lsstsw.html>`_. Specifically, build and setup the verify package:
+
+.. code-block:: bash
+
+   rebuild verify
+   # tag this build as current
+   eups tags --clone bNNNN current
+
+   # set up the package with EUPS
+   setup verify
+
+
+Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by dispatch verify (in different environments) using:
+
+
+.. code-block:: bash
+
+   $ dispatch_verify.py --test --env jenkins --lsstsw $(pwd) Cfht_output_r.json --write test_verify.json
+
+
+Data visualization with Holoviews and bokeh
+-------------------------------------------
 
 
