@@ -140,7 +140,18 @@ In order to support multiple execution environments the *Verification Job* must 
 The QC-0 database
 -----------------
 
-Current database schema for QC-0
+Current database schema for QC-0 with support to multiple execution enviroments.
+
+   * Entities:
+      * ``evironment``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
+   * Relationships:
+      * ``1 job : 1 environment``
+      * ``1 job : N packages``
+      * ``1 job : N blobs``
+      * ``1 job : N measurements``
+      * ``1 metric : N specs``
+      * ``1 metric : N measurements``
+
 
 .. figure:: _static/qc-0-db.png
    :name: QC-0 Database
