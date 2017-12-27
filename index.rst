@@ -47,9 +47,9 @@ Introduction
 
 In this document we present the design of the Science Quality Analysis Harness (SQuaSH) metrics dashboard.
 
-The verification of the LSST software stack performance on simulated data and on precursor data sets is an important activity during the LSST construction and gives us (SQuaRE) the opportunity to develop Quality Control (QC) infrastructure to support the development of the stack and to preserve the QA analysis code developed by the DM science pipelines group.
+The verification of the LSST software stack performance on simulated and precursor data sets is an important activity during the LSST construction. It gives us (SQuaRE) the opportunity to develop Quality Control (QC) infrastructure to support the development of the stack and to preserve the Quality Analysis (QA) code implemented by the DM Science Pipelines group.
 
-The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <https://github.com/lsst/LDM-522>`_) describes the different tasks to be performed in each QC tier, from **QC Tier 0** which aims to test and verify the DM sub-system during software development, to **QC Tier 3** which will enable the community to evaluate the data quality of their own analyses.
+The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <http://ls.st/LDM-522>`_) describes the QA activities and QC services necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan (see `LDM-63 <http://ls.st/LSE-63>`_). In particular, it describes the different tasks to be performed in each QC tier, from **QC Tier 0** which aims to test and verify the DM sub-system during software development, to **QC Tier 3** which will enable the community to evaluate the data quality of their own analyses.
 
 In the current implementation of SQuaSH we are focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets through the DM CI system using daily builds of the LSST software stack and send these results to a metrics dashboard that is used to monitor the stability of the code.
 
@@ -85,18 +85,47 @@ The general instructions to deploy squash are found at `squash-deployment <https
 
 
 
-SQuaSH in the context of Continuous Integration
-===============================================
+SQuaSH in the context of the DM software development
+====================================================
 
-In the current implementation, SQuaSH supports `lsst.very` packages that run through the CI system and stores the corresponding metadata and data blobs.
+In the current implementation, SQuaSH supports `lsst.verify` packages that run through the CI system and stores the corresponding metadata and data blobs. The next step is to support the user local development environment and larger
+scale runs in the verification cluster towards the QC Tier 1 tasks.
+
+
+Support for multiple verification packages
+------------------------------------------
+
+Support for multiple execution environments
+-------------------------------------------
+In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster environment and potentially other environments. As a consequence, the information displayed in the dashboard will change accordingly to the execution environment.
+
+In order to support multiple execution environments, the environment metadata in a *verification job* must map the corresponding job as suggested below:
+
+
+   * Jenkins CI
+      * Look up key: ID of the CI run
+      * Environment metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
+   * User local environment (imply support to multiple users)
+      * Look up key: ID of the user run
+      * Environment metadata: lsstsw and extra packages
+   * Verification Cluster
+      * Look up key: ID of the verification cluster run.
+      * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
+
+
+NOTE: for **QC Tier 1** we'll need the ability to save the input data and the stack configuration used in each run.
+
+
+The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different environments that ultimately map to ``jobs``. For example a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
+
 
 Drill down capability
 ---------------------
 
-
 Implementation Road Map
 -----------------------
-Support the verification packages:
+
+Support the following verification packages:
 
    * validate_drp
    * jointcal
@@ -121,34 +150,13 @@ SQuaSH in the context of the LSST Science Platform
 Appendix
 ========
 
-Support for multiple execution environments
--------------------------------------------
-In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster environment and potentially other environments. As a consequence, the information displayed in the dashboard will change accordingly to the execution environment.
 
-In order to support multiple execution environments, the environment metadata in a *verification job* must map the corresponding job as suggested below:
+The QC Tier 0 database
+----------------------
 
+Current SQuaSH database schema for QC Tier 0 tasks.
 
-   * Jenkins CI
-      * Look up key: ID of the CI run
-      * Environment metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
-   * User local environment (imply support to multiple users)
-      * Look up key: ID of the user run
-      * Environment metadata: lsstsw and extra packages
-   * Verification Cluster
-      * Look up key: ID of the verification cluster run.
-      * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
-
-
-NOTE: for QC-1 we'll need the ability to save the input data and the stack configuration used in each run.
-
-
-The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different environments that ultimately map to ``jobs``. For example a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
-
-
-The QC-0 database
------------------
-
-Current database schema for QC-0 with support to multiple execution enviroments.
+This implementation supports multiple verification packages and multiple execution environments.
 
    * Entities:
       * ``env``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
@@ -162,16 +170,16 @@ Current database schema for QC-0 with support to multiple execution enviroments.
 
 
 .. figure:: _static/qc-0-db.png
-   :name: QC-0 Database
+   :name: QC Tier 0 Database
    :target: _static/qc-0-db.png
-   :alt: QC-0 Database
+   :alt: QC Tier 0 Database
 
 
 The SQuaSH RESTful API
 ----------------------
 
-Sending data to SQuaSH
-----------------------
+Sending verification jobs to SQuaSH
+-----------------------------------
 
 First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io/install/lsstsw.html>`_. Specifically, build and setup the verify package:
 
