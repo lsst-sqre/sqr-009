@@ -121,20 +121,26 @@ Appendix
 
 Support for multiple execution environments
 -------------------------------------------
-In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster and probably others. As a consequence, the information displayed will change depending on the execution environment.
+In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster environment and potentially other environments. As a consequence, the information displayed in the dashboard will change accordingly to the execution environment.
 
-In order to support multiple execution environments the *Verification Job* must map the corresponding environment attribute and keep environment metadata as suggested below:
+In order to support multiple execution environments, the environment metadata in a *verification job* must map the corresponding job as suggested below:
 
 
    * Jenkins CI
-      * Natural key: ID of the CI run
-      * Metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
+      * Look up key: ID of the CI run
+      * Environment metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
    * User local environment (imply support to multiple users)
-      * Natural Key: ID of the user run
-      * Metadata: lsstsw and extra packages
+      * Look up key: ID of the user run
+      * Environment metadata: lsstsw and extra packages
    * Verification Cluster
-      * Natural Key: ID of the vrification cluster run.
-      * Metadata: lsst stack build (assuming we are using stable versions of the stack only), here we'll probably need the ability to change/save the stack configuration used in each run.
+      * Look up key: ID of the verification cluster run.
+      * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
+
+
+NOTE: for QC-1 we'll need the ability to save the input data and the stack configuration used in each run.
+
+
+The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different environments that ultimately map to ``jobs``. For example a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
 
 
 The QC-0 database
@@ -143,9 +149,9 @@ The QC-0 database
 Current database schema for QC-0 with support to multiple execution enviroments.
 
    * Entities:
-      * ``evironment``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
+      * ``env``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
    * Relationships:
-      * ``1 job : 1 environment``
+      * ``1 env : N jobs``
       * ``1 job : N packages``
       * ``1 job : N blobs``
       * ``1 job : N measurements``
@@ -177,7 +183,7 @@ First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io
    setup verify
 
 
-Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by dispatch verify (in different environments) using:
+Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by ``dispatch_verify`` in the ``jenkins`` environment using:
 
 
 .. code-block:: bash
