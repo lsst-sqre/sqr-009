@@ -49,7 +49,9 @@ In this document we present the design of the Science Quality Analysis Harness (
 
 The verification of the LSST software stack performance on simulated data and on precursor data sets is an important activity during the LSST construction and gives us (SQuaRE) the opportunity to develop Quality Control (QC) infrastructure to support the development of the stack and to preserve the QA analysis code developed by the DM science pipelines group.
 
-For **QA-0** we compute the Key Performance Metrics (KPMs) on *fixed* data sets through the CI system using the daily builds of the LSST software stack and send these results to a metrics dashboard that is used to monitor the stability of the code.
+The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <https://github.com/lsst/LDM-522>`_) describes the different tasks to be performed in each QC tier, from **QC Tier 0** which aims to test and verify the DM sub-system during software development, to **QC Tier 3** which will enable the community to evaluate the data quality of their own analyses.
+
+In the current implementation of SQuaSH we are focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets through the DM CI system using daily builds of the LSST software stack and send these results to a metrics dashboard that is used to monitor the stability of the code.
 
 The KPMs are computed by afterburner packages such as ``validate_drp`` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_.\
 
