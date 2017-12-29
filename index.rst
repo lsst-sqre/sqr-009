@@ -178,6 +178,8 @@ This implementation supports multiple verification packages and multiple executi
 The SQuaSH RESTful API
 ----------------------
 
+.. openapi:: _static/apispec_1.json
+
 Sending verification jobs to SQuaSH
 -----------------------------------
 

@@ -1,0 +1,591 @@
+{
+  "definitions": {}, 
+  "info": {
+    "description": "RESTful API for the LSST SQuaSH metrics harness system. You can find out more about SQuaSH at https://sqr-009.lsst.io", 
+    "termsOfService": null, 
+    "title": "LSST SQuaSH RESTful API", 
+    "version": "2.0.0"
+  }, 
+  "paths": {
+    "/jenkins/{ci_id}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "ID of the jenkins job", 
+            "in": "path", 
+            "name": "ci_id", 
+            "required": true, 
+            "type": "integer"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Jenkins job found"
+          }, 
+          "404": {
+            "description": "Jenkins job not found"
+          }
+        }, 
+        "summary": "Retrieve a verification job from the jenkins environment.", 
+        "tags": [
+          "Jobs"
+        ]
+      }
+    }, 
+    "/job": {
+      "post": {
+        "description": "This is the entry point for `dispatch_verify.py`.         See http://sqr-019.lsst.io for the body content.", 
+        "parameters": [
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "blobs": {
+                  "type": "array"
+                }, 
+                "measurements": {
+                  "type": "array"
+                }, 
+                "meta": {
+                  "type": "object"
+                }
+              }, 
+              "required": [
+                "measurements", 
+                "meta"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Job successfully created"
+          }, 
+          "400": {
+            "description": "You must provide a metric name associated with the measurements\n"
+          }, 
+          "500": {
+            "description": "An error occurred creating this Job"
+          }
+        }, 
+        "summary": "Create a verification job.", 
+        "tags": [
+          "Jobs"
+        ]
+      }
+    }, 
+    "/job/{job_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "description": "ID of the job", 
+            "in": "path", 
+            "name": "job_id", 
+            "required": true, 
+            "type": "integer"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Job deleted"
+          }, 
+          "400": {
+            "description": "Job does not exist"
+          }
+        }, 
+        "summary": "Delete a verification job and associated measurements,        data blobs and metadata.", 
+        "tags": [
+          "Jobs"
+        ]
+      }, 
+      "get": {
+        "parameters": [
+          {
+            "description": "ID of the job", 
+            "in": "path", 
+            "name": "job_id", 
+            "required": true, 
+            "type": "integer"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Job found"
+          }, 
+          "404": {
+            "description": "Job not found"
+          }
+        }, 
+        "summary": "Retrieve a verification job.", 
+        "tags": [
+          "Jobs"
+        ]
+      }
+    }, 
+    "/measurement/{job_id}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "ID of the job", 
+            "in": "path", 
+            "name": "job_id", 
+            "required": true, 
+            "type": "integer"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "List of Measurements successfully retrieved"
+          }, 
+          "404": {
+            "description": "Job not found"
+          }
+        }, 
+        "summary": "Retrieve all measurements performed by a verification job.", 
+        "tags": [
+          "Metric Measurements"
+        ]
+      }, 
+      "post": {
+        "parameters": [
+          {
+            "description": "ID of the job", 
+            "in": "path", 
+            "name": "job_id", 
+            "required": true, 
+            "type": "integer"
+          }, 
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "metric": {
+                  "type": "string"
+                }, 
+                "unit": {
+                  "type": "string"
+                }, 
+                "value": {
+                  "type": "number"
+                }
+              }, 
+              "required": [
+                "metric", 
+                "value", 
+                "unit"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Measurement successfully created"
+          }, 
+          "404": {
+            "description": "Associated metric name or job not found"
+          }, 
+          "500": {
+            "description": "An error occurred inserting the measurement"
+          }
+        }, 
+        "summary": "Create a new measurement for an existing job.", 
+        "tags": [
+          "Metric Measurements"
+        ]
+      }
+    }, 
+    "/measurements": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of Measurements successfully retrieved"
+          }
+        }, 
+        "summary": "Retrieve the complete list of measurements.", 
+        "tags": [
+          "Metric Measurements"
+        ]
+      }
+    }, 
+    "/metric/{name}": {
+      "delete": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric, e.g. validate_drp.AM1", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Metric deleted"
+          }, 
+          "400": {
+            "description": "Metric does not exist"
+          }
+        }, 
+        "summary": "Delete a metric.", 
+        "tags": [
+          "Metrics"
+        ]
+      }, 
+      "get": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric, e.g. validate_drp.AM1", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Metric found"
+          }, 
+          "404": {
+            "description": "Metric not found"
+          }
+        }, 
+        "summary": "Retrieve a metric from its name.", 
+        "tags": [
+          "Metrics"
+        ]
+      }, 
+      "post": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric, e.g. validate_drp.AM1", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }, 
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                }, 
+                "reference": {
+                  "type": "object"
+                }, 
+                "tags": {
+                  "type": "array"
+                }, 
+                "unit": {
+                  "type": "string"
+                }
+              }, 
+              "required": [
+                "description"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Metric successfully created"
+          }, 
+          "400": {
+            "description": "A metric with this name already exists"
+          }, 
+          "500": {
+            "description": "An error occurred creating this metric"
+          }
+        }, 
+        "summary": "Create a metric.", 
+        "tags": [
+          "Metrics"
+        ]
+      }
+    }, 
+    "/metrics": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of metrics successfully retrieved"
+          }
+        }, 
+        "summary": "Retrieve the complete list of metrics.", 
+        "tags": [
+          "Metrics"
+        ]
+      }, 
+      "post": {
+        "parameters": [
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "metrics": {
+                  "type": "array"
+                }
+              }, 
+              "required": [
+                "metrics"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "List of metrics successfully loaded"
+          }, 
+          "400": {
+            "description": "Metric already exists"
+          }, 
+          "500": {
+            "description": "An error occurred loading the metrics"
+          }
+        }, 
+        "summary": "Create a list of metrics.", 
+        "tags": [
+          "Metrics"
+        ]
+      }
+    }, 
+    "/register": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "password": {
+                  "type": "string"
+                }, 
+                "username": {
+                  "type": "string"
+                }
+              }, 
+              "required": [
+                "username password"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "User created"
+          }, 
+          "400": {
+            "description": "User already exist"
+          }
+        }, 
+        "summary": "Create a SQuaSH user.", 
+        "tags": [
+          "Users"
+        ]
+      }
+    }, 
+    "/spec/{name}": {
+      "delete": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric specification, e.g. validate_drp.AM1.mininum_gri\n", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Metric specification deleted"
+          }, 
+          "400": {
+            "description": "Metric specification not found"
+          }
+        }, 
+        "summary": "Delete a metric specification.", 
+        "tags": [
+          "Metric Specifications"
+        ]
+      }, 
+      "get": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric specification, e.g. validate_drp.AM1.minimum_gri\n", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Metric specification found"
+          }, 
+          "404": {
+            "description": "Metric specification not found"
+          }
+        }, 
+        "summary": "Retrieve a metric specification.", 
+        "tags": [
+          "Metric Specifications"
+        ]
+      }, 
+      "post": {
+        "parameters": [
+          {
+            "description": "Full qualified name of the metric specification, e.g. validate_drp.AM1.mininum_gri\n", 
+            "in": "path", 
+            "name": "name", 
+            "required": true, 
+            "type": "string"
+          }, 
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "metadata_query": {
+                  "type": "object"
+                }, 
+                "tags": {
+                  "type": "array"
+                }, 
+                "threshold": {
+                  "type": "object"
+                }
+              }, 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Metric specification successfully created"
+          }, 
+          "400": {
+            "description": "A metric specification whit this name already exists"
+          }, 
+          "500": {
+            "description": "An error occurred creating this metric specification"
+          }
+        }, 
+        "summary": "Create a metric specification.", 
+        "tags": [
+          "Metric Specifications"
+        ]
+      }
+    }, 
+    "/specs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of metric specifications successfully retrieved"
+          }
+        }, 
+        "summary": "Retrieve the complete list of metric specifications.", 
+        "tags": [
+          "Metric Specifications"
+        ]
+      }, 
+      "post": {
+        "parameters": [
+          {
+            "in": "body", 
+            "name": "Request body:", 
+            "schema": {
+              "properties": {
+                "specs": {
+                  "type": "array"
+                }
+              }, 
+              "required": [
+                "specs"
+              ], 
+              "type": "object"
+            }
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "List of metric specifications successfully created"
+          }, 
+          "400": {
+            "description": "Metric specification already exists"
+          }, 
+          "500": {
+            "description": "An error occurred creating a metric specification"
+          }
+        }, 
+        "summary": "Create a list of metric specifications.", 
+        "tags": [
+          "Metric Specifications"
+        ]
+      }
+    }, 
+    "/user/{username}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "name of the user", 
+            "in": "path", 
+            "name": "username", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "User found"
+          }, 
+          "404": {
+            "description": "User not found"
+          }
+        }, 
+        "summary": "Retrieve a user from SQuaSH.", 
+        "tags": [
+          "Users"
+        ]
+      }
+    }, 
+    "/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of users successfully retrieved"
+          }
+        }, 
+        "summary": "Retrieve the complete list of SQuaSH users.", 
+        "tags": [
+          "Users"
+        ]
+      }
+    }
+  }, 
+  "swagger": "2.0", 
+  "tags": [
+    {
+      "name": "Metrics"
+    }, 
+    {
+      "name": "Metric Specifications"
+    }, 
+    {
+      "name": "Metric Measurements"
+    }, 
+    {
+      "name": "Jobs"
+    }, 
+    {
+      "name": "Users"
+    }
+  ]
+}
