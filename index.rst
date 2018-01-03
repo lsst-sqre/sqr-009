@@ -112,11 +112,11 @@ In order to support multiple execution environments, the environment metadata in
       * Look up key: ID of the verification cluster run.
       * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
 
+.. note::
+    For **QC Tier 1** we'll need the ability to save the stack configuration used in each run.
 
-NOTE: for **QC Tier 1** we'll need the ability to save the input data and the stack configuration used in each run.
 
-
-The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different environments that ultimately map to ``jobs``. For example a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
+The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different execution environments such as Jenkins CI runs that ultimately map to ``jobs``. For example, a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
 
 
 Drill down capability
@@ -177,6 +177,16 @@ This implementation supports multiple verification packages and multiple executi
 
 The SQuaSH RESTful API
 ----------------------
+
+The SQuaSH RESTful API follows the `OpenAPI 2.0 documentation specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_. The specification is extracted from the docstrings by the `flasgger <https://github.com/rochacbruno/flasgger>`_ utility which is also used to create the `Swagger UI <https://squash-restful-api.lsst.codes/apidocs>`_ for the API.
+
+.. note::
+    The Swagger UI is experimental, authentication does not work through this interface yet.
+
+This `notebook <https://github.com/lsst-sqre/squash-rest-api/blob/master/tests/test_api.ipynb>`_ provides an example on how
+to interact with the SQuaSH RESTful API from registering a new user in SQuaSH to loading a verification job.
+
+All the available resources and possible operations are listed below:
 
 .. openapi:: _static/apispec_1.json
 
