@@ -1,17 +1,17 @@
 {
   "definitions": {}, 
   "info": {
-    "description": "RESTful API for the LSST SQuaSH metrics harness system. You can find out more about SQuaSH at https://sqr-009.lsst.io", 
+    "description": "RESTful API for the LSST SQuaSH metrics dashboard. You can find out more about SQuaSH at https://sqr-009.lsst.io", 
     "termsOfService": null, 
     "title": "LSST SQuaSH RESTful API", 
-    "version": "2.0.0"
+    "version": "1.0.0"
   }, 
   "paths": {
     "/jenkins/{ci_id}": {
       "get": {
         "parameters": [
           {
-            "description": "ID of the jenkins job", 
+            "description": "ID of the jenkins job.", 
             "in": "path", 
             "name": "ci_id", 
             "required": true, 
@@ -20,10 +20,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "Jenkins job found"
+            "description": "Jenkins job successfully retrieved."
           }, 
           "404": {
-            "description": "Jenkins job not found"
+            "description": "Jenkins job not found."
           }
         }, 
         "summary": "Retrieve a verification job from the jenkins environment.", 
@@ -61,13 +61,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "Job successfully created"
+            "description": "Job successfully created."
           }, 
           "400": {
-            "description": "You must provide a metric name associated with the measurements\n"
+            "description": "Missing or invalid data in the request body."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "500": {
-            "description": "An error occurred creating this Job"
+            "description": "An error occurred creating this job."
           }
         }, 
         "summary": "Create a verification job.", 
@@ -80,7 +83,7 @@
       "delete": {
         "parameters": [
           {
-            "description": "ID of the job", 
+            "description": "ID of the job.", 
             "in": "path", 
             "name": "job_id", 
             "required": true, 
@@ -89,10 +92,13 @@
         ], 
         "responses": {
           "200": {
-            "description": "Job deleted"
+            "description": "Job deleted."
           }, 
-          "400": {
-            "description": "Job does not exist"
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token."
+          }, 
+          "404": {
+            "description": "Job not found."
           }
         }, 
         "summary": "Delete a verification job and associated measurements,        data blobs and metadata.", 
@@ -103,7 +109,7 @@
       "get": {
         "parameters": [
           {
-            "description": "ID of the job", 
+            "description": "ID of the job.", 
             "in": "path", 
             "name": "job_id", 
             "required": true, 
@@ -112,10 +118,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "Job found"
+            "description": "Job successfully retrieved."
           }, 
           "404": {
-            "description": "Job not found"
+            "description": "Job not found."
           }
         }, 
         "summary": "Retrieve a verification job.", 
@@ -128,7 +134,7 @@
       "get": {
         "parameters": [
           {
-            "description": "ID of the job", 
+            "description": "ID of the job.", 
             "in": "path", 
             "name": "job_id", 
             "required": true, 
@@ -137,10 +143,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "List of Measurements successfully retrieved"
+            "description": "List of Measurements successfully retrieved."
           }, 
           "404": {
-            "description": "Job not found"
+            "description": "Job not found."
           }
         }, 
         "summary": "Retrieve all measurements performed by a verification job.", 
@@ -151,7 +157,7 @@
       "post": {
         "parameters": [
           {
-            "description": "ID of the job", 
+            "description": "ID of the job.", 
             "in": "path", 
             "name": "job_id", 
             "required": true, 
@@ -183,13 +189,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "Measurement successfully created"
+            "description": "Measurement successfully created."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "404": {
-            "description": "Associated metric name or job not found"
+            "description": "Job or associated metric not found."
           }, 
           "500": {
-            "description": "An error occurred inserting the measurement"
+            "description": "An error occurred inserting the measurement."
           }
         }, 
         "summary": "Create a new measurement for an existing job.", 
@@ -202,7 +211,7 @@
       "get": {
         "responses": {
           "200": {
-            "description": "List of Measurements successfully retrieved"
+            "description": "List of Measurements successfully retrieved."
           }
         }, 
         "summary": "Retrieve the complete list of measurements.", 
@@ -224,10 +233,13 @@
         ], 
         "responses": {
           "200": {
-            "description": "Metric deleted"
+            "description": "Metric deleted."
           }, 
-          "400": {
-            "description": "Metric does not exist"
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
+          }, 
+          "404": {
+            "description": "Metric not found."
           }
         }, 
         "summary": "Delete a metric.", 
@@ -247,10 +259,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "Metric found"
+            "description": "Metric found."
           }, 
           "404": {
-            "description": "Metric not found"
+            "description": "Metric not found."
           }
         }, 
         "summary": "Retrieve a metric from its name.", 
@@ -294,13 +306,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "Metric successfully created"
+            "description": "Metric successfully created."
           }, 
           "400": {
-            "description": "A metric with this name already exists"
+            "description": "A metric with this name already exists."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "500": {
-            "description": "An error occurred creating this metric"
+            "description": "An error occurred creating this metric."
           }
         }, 
         "summary": "Create a metric.", 
@@ -313,7 +328,7 @@
       "get": {
         "responses": {
           "200": {
-            "description": "List of metrics successfully retrieved"
+            "description": "List of metrics successfully retrieved."
           }
         }, 
         "summary": "Retrieve the complete list of metrics.", 
@@ -341,13 +356,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "List of metrics successfully loaded"
+            "description": "List of metrics successfully created."
           }, 
           "400": {
-            "description": "Metric already exists"
+            "description": "Metric already exists."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "500": {
-            "description": "An error occurred loading the metrics"
+            "description": "An error occurred loading the metrics."
           }
         }, 
         "summary": "Create a list of metrics.", 
@@ -380,10 +398,10 @@
         ], 
         "responses": {
           "201": {
-            "description": "User created"
+            "description": "User successfully created."
           }, 
           "400": {
-            "description": "User already exist"
+            "description": "User already exist."
           }
         }, 
         "summary": "Create a SQuaSH user.", 
@@ -405,10 +423,13 @@
         ], 
         "responses": {
           "200": {
-            "description": "Metric specification deleted"
+            "description": "Metric specification deleted."
           }, 
-          "400": {
-            "description": "Metric specification not found"
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
+          }, 
+          "404": {
+            "description": "Metric specification not found."
           }
         }, 
         "summary": "Delete a metric specification.", 
@@ -428,10 +449,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "Metric specification found"
+            "description": "Metric specification found."
           }, 
           "404": {
-            "description": "Metric specification not found"
+            "description": "Metric specification not found."
           }
         }, 
         "summary": "Retrieve a metric specification.", 
@@ -469,13 +490,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "Metric specification successfully created"
+            "description": "Metric specification successfully created."
           }, 
           "400": {
-            "description": "A metric specification whit this name already exists"
+            "description": "A metric specification whit this name already exists."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "500": {
-            "description": "An error occurred creating this metric specification"
+            "description": "An error occurred creating this metric specification."
           }
         }, 
         "summary": "Create a metric specification.", 
@@ -488,7 +512,7 @@
       "get": {
         "responses": {
           "200": {
-            "description": "List of metric specifications successfully retrieved"
+            "description": "List of metric specifications successfully retrieved."
           }
         }, 
         "summary": "Retrieve the complete list of metric specifications.", 
@@ -516,13 +540,16 @@
         ], 
         "responses": {
           "201": {
-            "description": "List of metric specifications successfully created"
+            "description": "List of metric specifications successfully created."
           }, 
           "400": {
-            "description": "Metric specification already exists"
+            "description": "Metric specification already exists or associated metric not found.\n"
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
           }, 
           "500": {
-            "description": "An error occurred creating a metric specification"
+            "description": "An error occurred creating a metric specification."
           }
         }, 
         "summary": "Create a list of metric specifications.", 
@@ -532,6 +559,32 @@
       }
     }, 
     "/user/{username}": {
+      "delete": {
+        "parameters": [
+          {
+            "description": "name of the user", 
+            "in": "path", 
+            "name": "username", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "User deleted."
+          }, 
+          "401": {
+            "description": "Authorization Required. Request does not contain a valid access token.\n"
+          }, 
+          "404": {
+            "description": "User not found."
+          }
+        }, 
+        "summary": "Delete a SQuaSH user.", 
+        "tags": [
+          "Users"
+        ]
+      }, 
       "get": {
         "parameters": [
           {
@@ -544,10 +597,10 @@
         ], 
         "responses": {
           "200": {
-            "description": "User found"
+            "description": "User found."
           }, 
           "404": {
-            "description": "User not found"
+            "description": "User not found."
           }
         }, 
         "summary": "Retrieve a user from SQuaSH.", 
@@ -573,6 +626,9 @@
   "swagger": "2.0", 
   "tags": [
     {
+      "name": "Jobs"
+    }, 
+    {
       "name": "Metrics"
     }, 
     {
@@ -580,9 +636,6 @@
     }, 
     {
       "name": "Metric Measurements"
-    }, 
-    {
-      "name": "Jobs"
     }, 
     {
       "name": "Users"
