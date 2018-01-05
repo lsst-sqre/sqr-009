@@ -213,7 +213,7 @@ Operations like POST and DELETE (see below) require authentication. To authentic
 
     # assuming you a have a job document you want to post to SQuaSH
     headers = {'Authorization': access_token}
-    r = requests.post("https://squash-restful-api-demo.lsst.codes/job", json=job)
+    r = requests.post("https://squash-restful-api-demo.lsst.codes/job", json=job, headers=headers)
 
 
 Documentation
