@@ -179,6 +179,46 @@ Back up of the SQuaSH QC Tier 0 database runs daily, you can follow at the slack
 The SQuaSH RESTful API
 ----------------------
 
+The SQuaSH RESTful API is a web app implemented in Flask for managing the SQuaSH metrics dashboard.
+
+Current version
+^^^^^^^^^^^^^^^
+
+By default, all requests to https://squash-restful-api-demo.lsst.codes/ receive the *v2 version* of the RESTful API. We encourage you to explicitly request this version via the Accept header.
+
+.. code-block:: json
+
+    Accept: application/json; version=2
+
+
+Schema
+^^^^^^
+
+All API access is over HTTPS, accessed from the https://squash-restful-api-demo.lsst.codes/. All data is sent and received
+as JSON.
+
+Authentication
+^^^^^^^^^^^^^^
+
+Operations like POST and DELETE (see below) require authentication. To authenticate through the SQuaSH RESTful API v2 you need to provide a valid access token in the authorization header, which can be obtained from the `/auth` endpoint for a registered user:
+
+.. code-block:: python
+
+    import requests
+
+    # assuming a registered user
+    user = {'username': user, 'password': passwd}
+    r = requests.post("https://squash-restful-api-demo.lsst.codes/auth", json=user)
+    access_token = 'JWT ' + r.json()['access_token']
+
+    # assuming you a have a job document you want to post to SQuaSH
+    headers = {'Authorization': access_token}
+    r = requests.post("https://squash-restful-api-demo.lsst.codes/job", json=job)
+
+
+Documentation
+^^^^^^^^^^^^^
+
 The SQuaSH RESTful API follows the `OpenAPI 2.0 documentation specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_. The specification is extracted from the docstrings by the `flasgger <https://github.com/rochacbruno/flasgger>`_ utility which is also used to create the `Swagger UI <https://squash-restful-api-demo.lsst.codes/apidocs>`_ for the API.
 
 .. note::
