@@ -174,6 +174,7 @@ This implementation supports multiple verification packages and multiple executi
    :target: _static/qc-0-db.png
    :alt: QC Tier 0 Database
 
+Back up of the SQuaSH QC Tier 0 database runs daily, you can follow at the slack channel #dm-squash-backups.
 
 The SQuaSH RESTful API
 ----------------------
