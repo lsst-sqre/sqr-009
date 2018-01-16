@@ -63,37 +63,48 @@ We expect to get early feedback from users and iterate with the science pipeline
 
 
 
-Architecture
-============
-
-SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) and developed as independent microservices as
-shown in figure 1.
-
-
-.. figure:: _static/squash-deployment.png
-   :name: squash-deployment
-   :target: _static/squash-deployment.png
-   :alt: SQuaSH Kubernetes deployment
-
-
-The general instructions to deploy squash are found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
-
-   * `squash-db <https://github.com/lsst-sqre/squash-db>`_: currently uses MariaDB 10.3+ but soon will migrate to MySQL 5.7 because of the MySQL support to JSON data types. We opted for a relational database because the QC database will be deployed to the Oracle *consolidated database* that will be part of the DAC.
-   * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ but will migrate to Flask soon. It is used to manage the SQuaSH metrics dashboard.
-   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
-   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
-
-
-
 SQuaSH in the context of the DM software development
 ====================================================
+
+<need a much better intro here, make a smooth transition form sqr-019>
 
 In the current implementation, SQuaSH supports `lsst.verify` packages that run through the CI system and stores the corresponding metadata and data blobs. The next step is to support the user local development environment and larger
 scale runs in the verification cluster towards the QC Tier 1 tasks.
 
 
+User registration
+-----------------
+
+
 Support for multiple verification packages
 ------------------------------------------
+
+
+
+Sending a verification job to SQuaSH
+------------------------------------
+
+First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io/install/lsstsw.html>`_. Specifically, build and setup the verify package:
+
+.. code-block:: bash
+
+   rebuild verify
+   # tag this build as current
+   eups tags --clone bNNNN current
+
+   # set up the package with EUPS
+   setup verify
+
+
+Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by ``dispatch_verify`` in the ``jenkins`` environment using:
+
+
+.. code-block:: bash
+
+   $ dispatch_verify.py --test --env jenkins --lsstsw $(pwd) Cfht_output_r.json --write test_verify.json
+
+
+
 
 Support for multiple execution environments
 -------------------------------------------
@@ -119,32 +130,11 @@ In order to support multiple execution environments, the environment metadata in
 The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different execution environments such as Jenkins CI runs that ultimately map to ``jobs``. For example, a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
 
 
-Drill down capability
----------------------
-
-Implementation Road Map
------------------------
-
-Support the following verification packages:
-
-   * validate_drp
-   * jointcal
-   * ap_verify
-
 
 Commissioning Extensions for SQuaSH
 ===================================
    * https://confluence.lsstcorp.org/display/LSSTCOM/Commissioning+Extensions+for+SQuaSH
 
-
-Data access investigations
---------------------------
-
-Job execution capability
-------------------------
-
-SQuaSH in the context of the LSST Science Platform
-==================================================
 
 
 Appendix
@@ -184,11 +174,13 @@ The SQuaSH RESTful API is a web app implemented in Flask for managing the SQuaSH
 Current version
 ^^^^^^^^^^^^^^^
 
-By default, all requests to https://squash-restful-api-demo.lsst.codes/ receive the *v2 version* of the RESTful API. We encourage you to explicitly request this version via the Accept header.
+By default, all requests to https://squash-restful-api-demo.lsst.codes/ receive version 1.0 (default) of the RESTful API. The default version of the API may change in the future, thus we encourage you to explicitly request versions via the Accept header.
+
+You can specify a version like this:
 
 .. code-block:: json
 
-    Accept: application/json; version=2
+    Accept: application/json; version=1.0
 
 
 Schema
@@ -200,7 +192,7 @@ as JSON.
 Authentication
 ^^^^^^^^^^^^^^
 
-Operations like POST and DELETE (see below) require authentication. To authenticate through the SQuaSH RESTful API v2 you need to provide a valid access token in the authorization header, which can be obtained from the `/auth` endpoint for a registered user:
+Operations like POST and DELETE (see below) require authentication. To authenticate through the SQuaSH RESTful API you need to provide a valid access token in the authorization header, which can be obtained from the `/auth` endpoint for a registered user:
 
 .. code-block:: python
 
@@ -231,30 +223,26 @@ All the available resources and possible operations are listed below:
 
 .. openapi:: _static/apispec_1.json
 
-Sending verification jobs to SQuaSH
------------------------------------
-
-First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io/install/lsstsw.html>`_. Specifically, build and setup the verify package:
-
-.. code-block:: bash
-
-   rebuild verify
-   # tag this build as current
-   eups tags --clone bNNNN current
-
-   # set up the package with EUPS
-   setup verify
 
 
-Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by ``dispatch_verify`` in the ``jenkins`` environment using:
+Deployment
+----------
+
+SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) and developed as independent microservices as
+shown in figure 1.
 
 
-.. code-block:: bash
+.. figure:: _static/squash-deployment.png
+   :name: squash-deployment
+   :target: _static/squash-deployment.png
+   :alt: SQuaSH Kubernetes deployment
 
-   $ dispatch_verify.py --test --env jenkins --lsstsw $(pwd) Cfht_output_r.json --write test_verify.json
 
+The general instructions to deploy squash are found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
 
-Data visualization with Holoviews and bokeh
--------------------------------------------
+   * `squash-db <https://github.com/lsst-sqre/squash-db>`_: currently uses MariaDB 10.3+ but soon will migrate to MySQL 5.7 because of the MySQL support to JSON data types. We opted for a relational database because the QC database will be deployed to the Oracle *consolidated database* that will be part of the DAC.
+   * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ but will migrate to Flask soon. It is used to manage the SQuaSH metrics dashboard.
+   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
+   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
 
