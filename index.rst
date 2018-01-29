@@ -66,10 +66,14 @@ We expect to get early feedback from users and iterate with the science pipeline
 SQuaSH in the context of the DM software development
 ====================================================
 
-<need a much better intro here, make a smooth transition form sqr-019>
 
-In the current implementation, SQuaSH supports `lsst.verify` packages that run through the CI system and stores the corresponding metadata and data blobs. The next step is to support the user local development environment and larger
-scale runs in the verification cluster towards the QC Tier 1 tasks.
+.. figure:: _static/overview.png
+   :name: overview
+   :target: _static/overview.png
+   :alt: SQuaSH in the context of CI
+
+In the current implementation, SQuaSH supports verification packages that run through the CI system and stores the corresponding metrics, measuremen    ts and associated data (data blobs).
+
 
 
 User registration
@@ -144,17 +148,18 @@ Appendix
 The QC Tier 0 database
 ----------------------
 
-Current SQuaSH database schema for QC Tier 0 tasks.
 
-This implementation supports multiple verification packages and multiple execution environments.
+For the QC Tier 0 DB, we opted for a relational database because the QC DBs will be deployed to the Oracle *consolidated database* as part of the LSST DAC. SQuaSH currently uses an instance of MySQL 5.7 deployed to Cloud SQL. We choose MySQL over MariaDB because of the support to JSON data types which are used in this implementation to make the database schema more generic. We store Job metadata, environment metadata as well as metric and specification properties as JSON blobs.
+
+Current SQuaSH database schema for QC Tier 0 tasks. This implementation supports multiple verification packages and multiple execution environments.
 
    * Entities:
       * ``env``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
    * Relationships:
       * ``1 env : N jobs``
       * ``1 job : N packages``
-      * ``1 job : N blobs``
       * ``1 job : N measurements``
+      * ``M measurements : N data blobs``
       * ``1 metric : N specs``
       * ``1 metric : N measurements``
 
@@ -164,7 +169,7 @@ This implementation supports multiple verification packages and multiple executi
    :target: _static/qc-0-db.png
    :alt: QC Tier 0 Database
 
-Back up of the SQuaSH QC Tier 0 database runs daily, you can follow at the slack channel #dm-squash-backups.
+Back ups of the SQuaSH QC Tier 0 DB are automated in Cloud SQL.
 
 The SQuaSH RESTful API
 ----------------------
@@ -228,8 +233,7 @@ All the available resources and possible operations are listed below:
 Deployment
 ----------
 
-SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) and developed as independent microservices as
-shown in figure 1.
+SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) on Kuberneted and is architected as independent microservices:
 
 
 .. figure:: _static/squash-deployment.png
@@ -238,11 +242,12 @@ shown in figure 1.
    :alt: SQuaSH Kubernetes deployment
 
 
-The general instructions to deploy squash are found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
+The general instructions to deploy squash can be found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
 
-   * `squash-db <https://github.com/lsst-sqre/squash-db>`_: currently uses MariaDB 10.3+ but soon will migrate to MySQL 5.7 because of the MySQL support to JSON data types. We opted for a relational database because the QC database will be deployed to the Oracle *consolidated database* that will be part of the DAC.
-   * `squash-api <https://github.com/lsst-sqre/squash-api>`_: was developed initially using `Django DRF <http://www.django-rest-framework.org/>`_ but will migrate to Flask soon. It is used to manage the SQuaSH metrics dashboard.
+   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and rewrited in Flask. It also includes a Celery app to enable the execution of tasks in background.
+
    * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
+
    * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
 
