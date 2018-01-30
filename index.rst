@@ -233,7 +233,7 @@ All the available resources and possible operations are listed below:
 Deployment
 ----------
 
-SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) on Kuberneted and is architected as independent microservices:
+SQuaSH is currently deployed to a commodity cloud, the Google Cloud Platform on the Google Kubernetes Engine (GKE), and is architected as independent microservices. The figure below shows the various "layers" of the Kubernetes deployment, the *service* which provides an external IP to the microservice to the pod which groups *containers* running on the same GKE node. Other Kubernetes objects like *secrets* and customized configurations called *configmaps* are also indicated in the figure. The microservices ``squash-restful-api``, ``squash-bokeh`` and ``squash-dash`` are connected through HTTPS and TLS termination is implemented in each microservice in the ``nginx`` container to secure traffic on the ``*.lsst.codes`` domain.
 
 
 .. figure:: _static/squash-deployment.png
@@ -244,9 +244,9 @@ SQuaSH is currently deployed to a commodity cloud (Google Cloud Platform) on Kub
 
 The general instructions to deploy squash can be found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
 
-   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and rewrited in Flask. It also includes a Celery app to enable the execution of tasks in background.
+   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and then reimplemented in Flask. It also includes a Celery app to enable the execution of tasks in background.
 
-   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: serve the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
+   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: it serves the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
 
    * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
