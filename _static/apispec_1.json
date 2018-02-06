@@ -60,8 +60,8 @@
           }
         ], 
         "responses": {
-          "201": {
-            "description": "Job successfully created."
+          "202": {
+            "description": "Request for creating Job received."
           }, 
           "400": {
             "description": "Missing or invalid data in the request body."
@@ -374,6 +374,33 @@
         ]
       }
     }, 
+    "/monitor": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Name of the data set used in this job, e.g: cfht, decam, hsc\n", 
+            "in": "url", 
+            "name": "ci_dataset", 
+            "type": "string"
+          }, 
+          {
+            "description": "The period used to retrieve the data, e.g: \"Last Month\", \"Last 6 Months\", \"Last Year\" or \"All\". By default retrieves the last month of data.\n", 
+            "in": "url", 
+            "name": "period", 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Monitor data successfully retrieved."
+          }
+        }, 
+        "summary": "Retrieve the data structure used to feed the monitor app.", 
+        "tags": [
+          "Apps"
+        ]
+      }
+    }, 
     "/register": {
       "post": {
         "parameters": [
@@ -558,6 +585,28 @@
         ]
       }
     }, 
+    "/status/{task_id}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Upload task ID as returned by /job", 
+            "in": "path", 
+            "name": "task_id", 
+            "required": true, 
+            "type": "string"
+          }
+        ], 
+        "responses": {
+          "200": {
+            "description": "Upload task status successfully retrieved. PENDING: the task did not start yet. STARTED: the task has started. SUCCESS: the task has successfully completed. FAILURE: something went wrong"
+          }
+        }, 
+        "summary": "Retrieve status of an upload task.", 
+        "tags": [
+          "Misc"
+        ]
+      }
+    }, 
     "/user/{username}": {
       "delete": {
         "parameters": [
@@ -621,6 +670,19 @@
           "Users"
         ]
       }
+    }, 
+    "/version": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Version successfully retrieved"
+          }
+        }, 
+        "summary": "Retrieve the default version of the API.", 
+        "tags": [
+          "Misc"
+        ]
+      }
     }
   }, 
   "swagger": "2.0", 
@@ -639,6 +701,9 @@
     }, 
     {
       "name": "Users"
+    }, 
+    {
+      "name": "Misc"
     }
   ]
 }
