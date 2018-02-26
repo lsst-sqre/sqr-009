@@ -7,6 +7,32 @@
     "version": "1.0.0"
   }, 
   "paths": {
+    "/datasets": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Dataset list successfully retrieved."
+          }
+        }, 
+        "summary": "Retrieve the list of datasets used in SQuaSH.", 
+        "tags": [
+          "Apps"
+        ]
+      }
+    }, 
+    "/default": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default values successfully retrieved."
+          }
+        }, 
+        "summary": "Retrieve default values used for display configuration         in the SQuaSH apps.", 
+        "tags": [
+          "Apps"
+        ]
+      }
+    }, 
     "/jenkins/{ci_id}": {
       "get": {
         "parameters": [
@@ -34,7 +60,7 @@
     }, 
     "/job": {
       "post": {
-        "description": "This is the entry point for `dispatch_verify.py`.         See http://sqr-019.lsst.io for the body content.", 
+        "description": "This is the entry point for `dispatch_verify.py`.         See http://sqr-019.lsst.io for the body content.<br/>", 
         "parameters": [
           {
             "in": "body", 
@@ -326,6 +352,14 @@
     }, 
     "/metrics": {
       "get": {
+        "parameters": [
+          {
+            "description": "Name of the verification package to filter", 
+            "in": "url", 
+            "name": "package", 
+            "type": "string"
+          }
+        ], 
         "responses": {
           "200": {
             "description": "List of metrics successfully retrieved."
@@ -395,7 +429,20 @@
             "description": "Monitor data successfully retrieved."
           }
         }, 
-        "summary": "Retrieve the data structure used to feed the monitor app.", 
+        "summary": "Retrieve the data structure used to feed the SQuaSH Monitor app.", 
+        "tags": [
+          "Apps"
+        ]
+      }
+    }, 
+    "/packages": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Package list successfully retrieved."
+          }
+        }, 
+        "summary": "Retrieve the list of verification packages used in SQuaSH.", 
         "tags": [
           "Apps"
         ]
@@ -537,6 +584,14 @@
     }, 
     "/specs": {
       "get": {
+        "parameters": [
+          {
+            "description": "A full qualified name for the Metric, e.g `validate_drp.AM1`", 
+            "in": "url", 
+            "name": "metric", 
+            "type": "string"
+          }
+        ], 
         "responses": {
           "200": {
             "description": "List of metric specifications successfully retrieved."
@@ -598,7 +653,7 @@
         ], 
         "responses": {
           "200": {
-            "description": "Upload task status successfully retrieved. PENDING: the task did not start yet. STARTED: the task has started. SUCCESS: the task has successfully completed. FAILURE: something went wrong"
+            "description": "Upload task status successfully retrieved. PENDING: the task did not start yet. STARTED: the task has started. SUCCESS: the task has completed. FAILURE: something went wrong."
           }
         }, 
         "summary": "Retrieve status of an upload task.", 

@@ -45,21 +45,51 @@
 Introduction
 ============
 
-In this document we present the design of the Science Quality Analysis Harness (SQuaSH) metrics dashboard.
+We present the current design for the Science Quality Analysis Harness (SQuaSH) metrics dashboard being developed by LSST/DM SQuaRE as part of the verification effort.
 
-The verification of the LSST software stack performance on simulated and precursor data sets is an important activity during the LSST construction. It gives us (SQuaRE) the opportunity to develop Quality Control (QC) infrastructure to support the development of the stack and to preserve the Quality Analysis (QA) code implemented by the DM Science Pipelines group.
+The verification of the LSST software stack performance on simulated and precursor data sets is an important activity during the project construction phase. It gives LSST/DM the opportunity to develop Quality Control (QC) infrastructure and Quality Analysis (QA) code to support the development of the stack and evaluate its results.
 
-The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <http://ls.st/LDM-522>`_) describes the QA activities and QC services necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan (see `LDM-63 <http://ls.st/LSE-63>`_). In particular, it describes the different tasks to be performed in each QC tier, from **QC Tier 0** which aims to test and verify the DM sub-system during software development, to **QC Tier 3** which will enable the community to evaluate the data quality of their own analyses.
+The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <http://ls.st/LDM-522>`_) describes the  QC services and QA activities necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan `LDM-63 <http://ls.st/LSE-63>`_. In particular, it describes the different tasks to be performed in each QC tier, starting from the **QC Tier 0** which aims to test and verify the DM sub-system during software development, to the **QC Tier 3** which will enable the science collaboration to evaluate the data quality for their own science analyses.
 
-In the current implementation of SQuaSH we are focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets through the DM CI system using daily builds of the LSST software stack and send these results to a metrics dashboard that is used to monitor the stability of the code.
-
-The KPMs are computed by afterburner packages such as ``validate_drp`` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_.\
+SQuaSH is a QC service, in its current implementation it is focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets to monitor the stability of the LSST software stack through the Jenkins Continuous Integration (CI) system from daily builds. As part of the CI pipeline, the KPMs are computed by afterburner packages such as ``validate_drp`` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_ and the results are sent to the SQuaSH metrics dashboard for monitoring.
 
 
-The current implementation of the SQuaSH metrics dashboard can be found at https://squash.lsst.codes/.
+In addition to the CI environment we propose a workflow for developers enabling them to run verification packages locally to perform their metric measurements and visualize the results using SQuaSH. We discuss the SQuaSH integration with the LSST Science Platform (LSP) and how users of the notebook aspect of the LSP can benefit from pre-built SQuaSH apps embeded in the Jupyter notebooks. Finally, in the Appendix we provide more information about the system architecture and its deployment on the Google Kubernetes Engine (GKE).
+
+The current production version of the SQuaSH metrics dashboard can be found at https://squash.lsst.codes/ and the current development version is available at https://squash-demo.lsst.codes/.
+
+We expect to get feedback from users and iterate with the science pipelines group to incorporate their metrics and visualizations in SQuaSH. The main goal is to anticipate the needs for commissioning and to leverage the production SDQA system based on this experience.
 
 
-We expect to get early feedback from users and iterate with the science pipelines group to improve this system. The main goal is to anticipate the needs for commissioning and and leverage the production SDQA system based on the experience of verifying the LSST software stack during construction.
+Design guidelines
+=================
+
+Some of the design guidelines and characteristics of SQuaSH are summarized below:
+
+ - implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_
+ - implement a QC database to support the tasks performed in the QC Tier 0, 1, 2 and 3 to preserve and visualize their results
+ - support multiple test datasets and multiple verification packages
+ - support automated verification runs, initially through the Jenkins CI environment and other execution environments
+ - support verification package runs from the developer "local" environment
+ - enable interactive visualization for the metric measurements
+ - correlate deviations of the metric measurements with code changes
+ - provide notifications/alerts upon metric measurement deviations
+ - provide the so called "drill down" capability, i.e, in addition to the visualization of the scalar metrics enable further interactive visualization from the same  data used to perform the metric measurements
+ - extensible: make it easy for contributors to add new visualizations (a.k.a SQuaSH apps)
+ - embeddable: reuse SQuaSH apps for analysis in the LSP notebook aspect
+ - replaceable: easy to replace SQuaSH components keeping up with standard technologies
+ - deployable on Kubernetes
+
+Other desired characteristics:
+
+ - multi user environment is to keep results from user "local" verification runs
+ - the SQuaSH API should support execution of jobs on Kubernetes for QC-Tier 2 and 3
+ - automated execution of the verification packages and arbitrary analysis code (probably in the form of notebooks) on a exposure by exposure basis, e.g. end-of-night report
+
+
+Commissioning Extensions for SQuaSH
+-----------------------------------
+   * https://confluence.lsstcorp.org/display/LSSTCOM/Commissioning+Extensions+for+SQuaSH
 
 
 
@@ -72,50 +102,17 @@ SQuaSH in the context of the DM software development
    :target: _static/overview.png
    :alt: SQuaSH in the context of CI
 
-In the current implementation, SQuaSH supports verification packages that run through the CI system and stores the corresponding metrics, measuremen    ts and associated data (data blobs).
-
-
-
-User registration
------------------
-
-
-Support for multiple verification packages
-------------------------------------------
-
-
-
-Sending a verification job to SQuaSH
-------------------------------------
-
-First install the `LSST Science Pipelines with lsstsw <https://pipelines.lsst.io/install/lsstsw.html>`_. Specifically, build and setup the verify package:
-
-.. code-block:: bash
-
-   rebuild verify
-   # tag this build as current
-   eups tags --clone bNNNN current
-
-   # set up the package with EUPS
-   setup verify
-
-
-Assuming you have an output of ``lsst.verify``, e.g. ``Cfht_output_r.json`` you can reproduce the JSON document created by ``dispatch_verify`` in the ``jenkins`` environment using:
-
-
-.. code-block:: bash
-
-   $ dispatch_verify.py --test --env jenkins --lsstsw $(pwd) Cfht_output_r.json --write test_verify.json
-
-
+In its `current implementation <https://squash.lsst.codes/>`_, SQuaSH supports verification packages that run through the Jenkins CI environment and stores the corresponding metric measurements and data used to compute them as data blobs (metadata plus tabular data). The test data sets are stored on `Git LFS <https://sqr-001.lsst.io/>`_ repositories, the Jenkins CI execution environment performs data reduction and verification package runs, the ``Job`` object produced by the verification package is serialized and persisted as a JSON document, as defined by the verification framework, and sent to the SQuaSH RESTful API so that the results can be visualized through `Bokeh apps <https://bokeh.pydata.org/en/latest/>`_ served by SQuaSH.
 
 
 Support for multiple execution environments
 -------------------------------------------
-In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user local environment, the verification cluster environment and potentially other environments. As a consequence, the information displayed in the dashboard will change accordingly to the execution environment.
 
-In order to support multiple execution environments, the environment metadata in a *verification job* must map the corresponding job as suggested below:
+In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user "local" environment, the verification cluster environment and potentially others.
 
+In the verification framework, a ``Job`` packages several measurements, metadata and data blobs. The metadata contains information about the execution environment.
+
+Examples of verification ``Job`` metadata for different execution environments:
 
    * Jenkins CI
       * Look up key: ID of the CI run
@@ -128,16 +125,27 @@ In order to support multiple execution environments, the environment metadata in
       * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
 
 .. note::
-    For **QC Tier 1** we'll need the ability to save the stack configuration used in each run.
+    For **QC Tier 1** the metadata may include things like the stack configuration used in each run.
 
 
-The SQuaSH API provides a generic resource to interact with jobs, ``/jobs/<job_id>`` and specific resources to interact with runs on different execution environments such as Jenkins CI runs that ultimately map to ``jobs``. For example, a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding job to retrieve the associated measurements and metadata.
+The SQuaSH RESTful API provides a generic resource to interact with jobs and specific resources to interact with runs on different execution environments that ultimately map to a job. In this way a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding ``/jobs/<job_id>`` to retrieve the associated measurements, metadata and data blobs.
 
 
 
-Commissioning Extensions for SQuaSH
-===================================
-   * https://confluence.lsstcorp.org/display/LSSTCOM/Commissioning+Extensions+for+SQuaSH
+Possible workflow for DM developers (the jointcal use case)
+-----------------------------------------------------------
+
+
+
+SQuaSH in the context of the LSST Science Platform
+==================================================
+
+.. figure:: _static/squash_lsp.png
+   :name: overview
+   :target: _static/overview.png
+   :alt: SQuaSH in the context of the LSP
+
+Using the LSP environment for QC-Tier 3 analysis. Using SQuaSH to submit verification runs in the verification cluster. Embedding SQuaSH apps in the JupyterLab environment.
 
 
 
@@ -145,11 +153,32 @@ Appendix
 ========
 
 
+Deployment
+----------
+
+SQuaSH is currently deployed to a commodity cloud, the Google Cloud Platform, on the Google Kubernetes Engine (GKE), and is architected as independent microservices. The figure below shows the various "layers" of the Kubernetes deployment, the *service* which provides an external IP to the microservice, the *pod* which groups containers running on the same GKE node. Other Kubernetes objects like *secrets* and customized configurations stored as *configmaps* are also indicated in the figure. The microservices ``squash-restful-api``, ``squash-bokeh`` and ``squash-dash`` are connected through HTTPS and TLS termination is implemented trough the ``nginx`` container which works as a reverse proxy to secure the traffic outside the pods.
+
+.. figure:: _static/squash-deployment.png
+   :name: squash-deployment
+   :target: _static/squash-deployment.png
+   :alt: SQuaSH Kubernetes deployment
+
+
+The general instructions to deploy squash can be found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
+
+   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and then reimplemented in Flask with several extensions. It also uses Celery to enable the execution of tasks in background. This can be extended later to
+
+   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: it serves the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
+
+   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
+
+
+
 The QC Tier 0 database
 ----------------------
 
 
-For the QC Tier 0 DB, we opted for a relational database because the QC DBs will be deployed to the Oracle *consolidated database* as part of the LSST DAC. SQuaSH currently uses an instance of MySQL 5.7 deployed to Cloud SQL. We choose MySQL over MariaDB because of the support to JSON data types which are used in this implementation to make the database schema more generic. We store Job metadata, environment metadata as well as metric and specification properties as JSON blobs.
+For the QC Tier 0 DB, we opted for a relational database. The motivation behind this choice is that we plan to deploy QC DBs to the Oracle *consolidated database* as part of the LSP. SQuaSH currently uses an instance of MySQL 5.7 deployed to Cloud SQL. We chose MySQL over MariaDB, used in Qserv, because of the support to JSON data types which are used in this implementation to make the database schema more generic. We store Job metadata, environment metadata as well as metric definitions and specifications as JSON blobs.
 
 Current SQuaSH database schema for QC Tier 0 tasks. This implementation supports multiple verification packages and multiple execution environments.
 
@@ -228,26 +257,5 @@ All the available resources and possible operations are listed below:
 
 .. openapi:: _static/apispec_1.json
 
-
-
-Deployment
-----------
-
-SQuaSH is currently deployed to a commodity cloud, the Google Cloud Platform on the Google Kubernetes Engine (GKE), and is architected as independent microservices. The figure below shows the various "layers" of the Kubernetes deployment, the *service* which provides an external IP to the microservice to the pod which groups *containers* running on the same GKE node. Other Kubernetes objects like *secrets* and customized configurations called *configmaps* are also indicated in the figure. The microservices ``squash-restful-api``, ``squash-bokeh`` and ``squash-dash`` are connected through HTTPS and TLS termination is implemented in each microservice in the ``nginx`` container to secure traffic on the ``*.lsst.codes`` domain.
-
-
-.. figure:: _static/squash-deployment.png
-   :name: squash-deployment
-   :target: _static/squash-deployment.png
-   :alt: SQuaSH Kubernetes deployment
-
-
-The general instructions to deploy squash can be found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
-
-   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and then reimplemented in Flask. It also includes a Celery app to enable the execution of tasks in background.
-
-   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: it serves the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
-
-   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
 
 
