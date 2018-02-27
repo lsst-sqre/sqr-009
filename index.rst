@@ -49,14 +49,14 @@ We present the current design for the Science Quality Analysis Harness (SQuaSH) 
 
 The verification of the LSST software stack performance on simulated and precursor data sets is an important activity during the project construction phase. It gives LSST/DM the opportunity to develop Quality Control (QC) infrastructure and Quality Analysis (QA) code to support the development of the stack and evaluate its results.
 
-The DM Science Data Quality Assurance (SDQA) System Conceptual Design (see `LDM-522 <http://ls.st/LDM-522>`_) describes the  QC services and QA activities necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan `LDM-63 <http://ls.st/LSE-63>`_. In particular, it describes the different tasks to be performed in each QC tier, starting from the **QC Tier 0** which aims to test and verify the DM sub-system during software development, to the **QC Tier 3** which will enable the science collaboration to evaluate the data quality for their own science analyses.
+The DM Science Data Quality Assurance (SDQA) System Conceptual Design [`LDM-522 <http://ls.st/LDM-522>`_] describes the  QC services and QA activities necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan [`LDM-63 <http://ls.st/LSE-63>`_]. In particular, it describes the different tasks to be performed in each QC tier, starting from the **QC Tier 0** which aims to test and verify the DM sub-system during software development, to the **QC Tier 3** which will enable the science collaboration to evaluate the data quality for their own science analyses.
 
-SQuaSH is a QC service, in its current implementation it is focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets to monitor the stability of the LSST software stack through the Jenkins Continuous Integration (CI) system from daily builds. As part of the CI pipeline, the KPMs are computed by afterburner packages such as ``validate_drp`` (see  `DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_) implemented using the `LSST Verification Framework <https://sqr-019.lsst.io>`_ and the results are sent to the SQuaSH metrics dashboard for monitoring.
+SQuaSH is a QC service, in its current implementation it is focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets to monitor the stability of the LSST software stack through the Jenkins Continuous Integration (CI) system from daily builds. As part of the CI pipeline, the KPMs are computed by afterburner packages such as ``validate_drp``  [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] and the results are sent to the SQuaSH metrics dashboard for monitoring.
 
 
 In addition to the CI environment we propose a workflow for developers enabling them to run verification packages locally to perform their metric measurements and visualize the results using SQuaSH. We discuss the SQuaSH integration with the LSST Science Platform (LSP) and how users of the notebook aspect of the LSP can benefit from pre-built SQuaSH apps embeded in the Jupyter notebooks. Finally, in the Appendix we provide more information about the system architecture and its deployment on the Google Kubernetes Engine (GKE).
 
-The current production version of the SQuaSH metrics dashboard can be found at https://squash.lsst.codes/ and the current development version is available at https://squash-demo.lsst.codes/.
+The current production version of the SQuaSH metrics dashboard is available at https://squash.lsst.codes/ and the current development version at https://squash-demo.lsst.codes/.
 
 We expect to get feedback from users and iterate with the science pipelines group to incorporate their metrics and visualizations in SQuaSH. The main goal is to anticipate the needs for commissioning and to leverage the production SDQA system based on this experience.
 
@@ -64,27 +64,27 @@ We expect to get feedback from users and iterate with the science pipelines grou
 Design guidelines
 =================
 
-Some of the design guidelines and characteristics of SQuaSH are summarized below:
+Some of the design guidelines and features of SQuaSH are summarized below:
 
  - implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_
  - implement a QC database to support the tasks performed in the QC Tier 0, 1, 2 and 3 to preserve and visualize their results
  - support multiple test datasets and multiple verification packages
  - support automated verification runs, initially through the Jenkins CI environment and other execution environments
- - support verification package runs from the developer "local" environment
  - enable interactive visualization for the metric measurements
  - correlate deviations of the metric measurements with code changes
  - provide notifications/alerts upon metric measurement deviations
- - provide the so called "drill down" capability, i.e, in addition to the visualization of the scalar metrics enable further interactive visualization from the same  data used to perform the metric measurements
- - extensible: make it easy for contributors to add new visualizations (a.k.a SQuaSH apps)
+ - provide the "drill down" capability, i.e, in addition to the visualization of the scalar metrics enable further interactive visualization from the same data used to perform the metric measurements
+ - extensible: make it easy for users to add new visualizations (a.k.a SQuaSH apps)
  - embeddable: reuse SQuaSH apps for analysis in the LSP notebook aspect
- - replaceable: easy to replace SQuaSH components keeping up with standard technologies
+ - replaceable: easy to replace SQuaSH components keep up with standard technologies
  - deployable on Kubernetes
 
-Other desired characteristics:
+Other desired capabilities:
 
- - multi user environment is to keep results from user "local" verification runs
- - the SQuaSH API should support execution of jobs on Kubernetes for QC-Tier 2 and 3
- - automated execution of the verification packages and arbitrary analysis code (probably in the form of notebooks) on a exposure by exposure basis, e.g. end-of-night report
+ - support verification runs from the developer "local" environment
+ - support multi users to keep results from user "local" verification runs, use GitHub auth for the SQuaSH API.
+ - record measurements of a given metric per CCD, visit, patch specially for QC-Tier 2 and 3 where we process larger data sets. This also will make the drill down possible.
+
 
 
 Commissioning Extensions for SQuaSH
@@ -97,12 +97,36 @@ SQuaSH in the context of the DM software development
 ====================================================
 
 
+The LSST Verification framework
+-------------------------------
+
+The ``lsst.verify`` is the framework for making verification measurements in the LSST Science Pipelines. ``lsst.verify`` aims to generalize the process of defining metrics, measuring those metrics, and tracking those measurements in SQuaSH. The ``lsst.verify`` design is described in `SQR-017 <https://sqr-019.lsst.io/>`_, and `SQR-019 <https://sqr-019.lsst.io/>`_ demonstrates its use.
+
+``lsst.verify`` is currently being used by specialized afterburner packages such as ``validate_drp`` [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] which measures metrics from the ``ProcessCcdTask`` outputs, but it can also be used to track performance metrics of specific pipeline Tasks such as ``jointcal``
+
+`DMTN-057 <https://dmtn-057.lsst.io/>`_ also presents an interesting discussion on how to instrument the Science Pipelines tasks with verification metrics based on the ``ap_verify`` experience [`DMTN-54 <https://dmtn-054.lsst.io/>`_].
+
+
+The SQuaSH API implements the concepts developed in ``lsst.verify``. A verification ``Job`` is the result of a verification run and contains at least one measurement of a particular metric. A ``Job`` also contains metadata, with information about the execution environment, and the actual data used to make the measurements,  called data blobs which includes tabular data and additional metadata.
+
+A ``Job`` object produced by ``lsst.verify`` is serialized, persisted as a JSON document and sent to SQuaSH so that the results can be visualized through the SQuaSH metrics dashboard.
+
+
+Use case 1: Afterburner packages in CI
+--------------------------------------
+
 .. figure:: _static/overview.png
    :name: overview
    :target: _static/overview.png
    :alt: SQuaSH in the context of CI
 
-In its `current implementation <https://squash.lsst.codes/>`_, SQuaSH supports verification packages that run through the Jenkins CI environment and stores the corresponding metric measurements and data used to compute them as data blobs (metadata plus tabular data). The test data sets are stored on `Git LFS <https://sqr-001.lsst.io/>`_ repositories, the Jenkins CI execution environment performs data reduction and verification package runs, the ``Job`` object produced by the verification package is serialized and persisted as a JSON document, as defined by the verification framework, and sent to the SQuaSH RESTful API so that the results can be visualized through `Bokeh apps <https://bokeh.pydata.org/en/latest/>`_ served by SQuaSH.
+In its `current implementation <https://squash.lsst.codes/>`_, SQuaSH supports verification packages that run through the Jenkins CI environment and stores the corresponding metric measurements and data used to compute them. After the stack build the Jenkins pipeline performs the data reduction and run the verification package on test data sets are stored on `Git LFS <https://sqr-001.lsst.io/>`_.
+
+By measuring metrics in fixed data sets in CI we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
+
+
+Use case 2: Instrumenting Science Pipeline tasks
+------------------------------------------------
 
 
 Support for multiple execution environments
@@ -129,11 +153,6 @@ Examples of verification ``Job`` metadata for different execution environments:
 
 
 The SQuaSH RESTful API provides a generic resource to interact with jobs and specific resources to interact with runs on different execution environments that ultimately map to a job. In this way a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding ``/jobs/<job_id>`` to retrieve the associated measurements, metadata and data blobs.
-
-
-
-Possible workflow for DM developers (the jointcal use case)
------------------------------------------------------------
 
 
 
