@@ -64,6 +64,8 @@ We expect to get feedback from users and iterate with the science pipelines grou
 Design guidelines
 =================
 
+
+
 Some of the design guidelines and features of SQuaSH are summarized below:
 
  - implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_
@@ -119,13 +121,20 @@ Use case 1: Afterburner packages in CI
    :target: _static/overview.png
    :alt: SQuaSH in the context of CI
 
-In its `current implementation <https://squash.lsst.codes/>`_, SQuaSH supports verification packages that run through the Jenkins CI environment and stores the corresponding metric measurements and data used to compute them. After the stack build the Jenkins pipeline performs the data reduction and run the verification package on test data sets are stored on `Git LFS <https://sqr-001.lsst.io/>`_.
 
-By measuring metrics in fixed data sets in CI we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
+SQuaSH supports verification packages that run as after burners in Jenkins CI.
+
+In the current implementation, the Jenkins ``release/nightly-release`` pipeline builds the stack and triggers ``validate_drp`` which performs the data reduction step on test data sets and make the verification measurements on the data reduction outputs.
+
+By measuring metrics on `fixed` data sets in CI we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
+
+The results are sent to the `SQuaSH metrics dashboard <https://squash.lsst.codes/>`_.
 
 
 Use case 2: Instrumenting Science Pipeline tasks
 ------------------------------------------------
+
+The ``jointcal`` is an example of science pipeline task that uses ``lsst.verify`` for making verification measurements. In its current implementation the verification ``Job`` is serialized to JSON
 
 
 Support for multiple execution environments
