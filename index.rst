@@ -83,8 +83,7 @@ Other desired capabilities:
 
  - support verification runs from the developer "local" environment
  - support multi users to keep results from user "local" verification runs, use GitHub auth for the SQuaSH API.
- - record measurements of a given metric per CCD, visit, patch specially for QC-Tier 2 and 3 where we process larger data sets. This also will make the drill down possible.
-
+ - record measurements of a given metric per Patch, Visit, CCD specially for QC-Tier 2 and 3 where we process larger data sets. If we aggregate metric measurements at the CCD level to the Visit level we can also implement some kind of drill down visualization.
 
 
 Commissioning Extensions for SQuaSH
