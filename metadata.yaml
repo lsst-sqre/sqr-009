@@ -20,7 +20,7 @@ authors:
     - 'Angelo Fausti'
 
 # Current document version
-last_revised: '2017-12-15'
+last_revised: '2018-02-28'
 
 # Version. Use Semvar, e.g., 1.0, including .dev, as necessary
 # This version string should correspond to the git tag when the document is published on Zenodo
