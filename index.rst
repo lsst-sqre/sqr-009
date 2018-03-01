@@ -84,7 +84,7 @@ Some of the design guidelines and features of SQuaSH are summarized below:
 Other desired capabilities:
 
  - support verification runs from the developer "local" environment
- - support multi users to keep results from user "local" verification runs, use GitHub auth for the SQuaSH API.
+ - support multi users to keep results from user "local" verification runs, use GitHub OAuth for the SQuaSH API.
  - record measurements of a given metric per Patch, Visit, CCD specially for QC-Tier 2 and 3 where we process larger data sets. If we aggregate metric measurements at the CCD level to the Visit level we can also implement some kind of drill down visualization.
 
 
@@ -101,16 +101,19 @@ SQuaSH in the context of the DM software development
 The LSST Verification framework
 -------------------------------
 
-The ``lsst.verify`` is the framework for making verification measurements in the LSST Science Pipelines. ``lsst.verify`` aims to generalize the process of defining metrics, measuring those metrics, and tracking those measurements in SQuaSH. The ``lsst.verify`` design is described in `SQR-017 <https://sqr-019.lsst.io/>`_, and `SQR-019 <https://sqr-019.lsst.io/>`_ demonstrates its use.
+The ``lsst.verify`` is the framework for making verification measurements in the LSST Science Pipelines. ``lsst.verify`` aims to generalize the process of defining metrics, measuring those metrics, and tracking those measurements in SQuaSH. The design is described in `SQR-017 <https://sqr-019.lsst.io/>`_, and `SQR-019 <https://sqr-019.lsst.io/>`_ demonstrates its use.
 
-``lsst.verify`` is currently being used by specialized afterburner packages such as ``validate_drp`` [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] which measures metrics from the ``ProcessCcdTask`` outputs, but it can also be used to track performance metrics of specific pipeline Tasks such as ``jointcal``
+``lsst.verify`` is currently being used by specialized afterburner packages such as ``validate_drp`` [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] but it can also be used to track performance metrics of specific pipeline Tasks such as ``jointcal``.
 
-`DMTN-057 <https://dmtn-057.lsst.io/>`_ also presents an interesting discussion on how to instrument the Science Pipelines tasks with verification metrics based on the ``ap_verify`` experience [`DMTN-54 <https://dmtn-054.lsst.io/>`_].
+See also `DMTN-057 <https://dmtn-057.lsst.io/>`_ for a discussion on how to instrument the Science Pipelines tasks with verification metrics based on the ``ap_verify`` experience.
 
 
-The SQuaSH API implements the concepts developed in ``lsst.verify``. A verification ``Job`` is the result of a verification run and contains at least one measurement of a particular metric. A ``Job`` also contains metadata, with information about the execution environment, and the actual data used to make the measurements,  called data blobs which includes tabular data and additional metadata.
+The SQuaSH API implements the concepts developed in ``lsst.verify``. A verification ``Job`` is the result of a verification run and contains at least one measurement of a particular metric. A ``Job`` also contains metadata, with information about the execution environment, and the actual data used to make the measurements. The data used to make the measurements is called `data blob` which includes tabular data and additional metadata. Blobs are used for the drill down visualization in SQuaSH.
 
-A ``Job`` object produced by ``lsst.verify`` is serialized, persisted as a JSON document and sent to SQuaSH so that the results can be visualized through the SQuaSH metrics dashboard.
+A ``Job`` object produced by ``lsst.verify`` can be persisted as a JSON file and sent to SQuaSH using the ``dispatch_verify`` utility.
+
+
+Next we discuss use cases for DM developers involving SQuaSH.
 
 
 Use case 1: Afterburner packages in CI
@@ -121,24 +124,67 @@ Use case 1: Afterburner packages in CI
    :target: _static/overview.png
    :alt: SQuaSH in the context of CI
 
+SQuaSH supports verification packages that run as afterburners in Jenkins CI. In the current implementation the Jenkins ``release/nightly-release`` pipeline builds the stack and triggers ``validate_drp`` which measures metrics from the ``ProcessCcdTask`` outputs.
 
-SQuaSH supports verification packages that run as after burners in Jenkins CI.
-
-In the current implementation, the Jenkins ``release/nightly-release`` pipeline builds the stack and triggers ``validate_drp`` which performs the data reduction step on test data sets and make the verification measurements on the data reduction outputs.
-
-By measuring metrics on `fixed` data sets in CI we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
+By measuring metrics on `fixed` data sets in CI, we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
 
 The results are sent to the `SQuaSH metrics dashboard <https://squash.lsst.codes/>`_.
 
 
-Use case 2: Instrumenting Science Pipeline tasks
+Use case 2: Instrumenting science pipeline Tasks
 ------------------------------------------------
 
-The ``jointcal`` is an example of science pipeline task that uses ``lsst.verify`` for making verification measurements. In its current implementation the verification ``Job`` is serialized to JSON
+Developers can implement verification metrics on their own pipeline Tasks.
+
+The ``jointcal`` is an example of science pipeline Task that uses ``lsst.verify`` for defining its performance metrics and making verification measurements.
+
+A Task should produce one verification ``Job`` containing the set of measurements performed by the Task. Usually it would be part of a larger pipeline involving several tasks and the verification measurements would be sent to SQuaSH after the execution of each Task.
+
+In order to illustrate this use case we run the ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
+
+You can run the `jointcal` as follows:
+
+.. code-block:: bash
+
+    $ setup obs_subaru
+    $ setup jointcal
+    $ setup testdata_jointcal
+    $ export ASTROMETRY_NET_DATA_DIR=${TESTDATA_JOINTCAL_DIR}/hsc_and_index
+    $ jointcal.py ${TESTDATA_JOINTCAL_DIR}/hsc/ --output output --id visit=0903334^0903336^0903338^0903342^0903344^0903346 --clobber-versions --clobber-config
 
 
-Support for multiple execution environments
--------------------------------------------
+Which will produce among other things the ``verify_output.json`` file with the verification measurements.
+
+Here we set explicitly some variables that would be required in the Jenkins CI environment, or the equivalent in other execution environments:
+
+.. code-block:: bash
+
+  $ export BUILD_ID=1  # ID in the CI system
+  $ export PRODUCT=jointcal # Name of the package
+  $ export dataset=hsc # Name of the test dataset used
+  $ dispatch_verify.py --url https://squash-restful-api-demo.lsst.codes --user <squash user> --password <squash passwd> --env jenkins --lsstsw <lsstsw directory path> verify_output.json
+
+
+
+Use case 3: Supporting development branchs
+------------------------------------------
+
+Given that specific Tasks can send verification measurements to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the CI run is triggered by the developer and SQuaSH will keep track of the specific package and branch being tested. On the dashboard these runs are identified by the ID of the CI run but could be filtered by user if needed.
+
+
+Use case 4: Supporting the developer local environment
+------------------------------------------------------
+
+Another use case is to support the developer local execution environment. An implication for that is to support multiple users in SQuaSH. Then the ``user_id`` can be associated with the corresponding ``job_id`` and the results can be displayed by user in the SQuaSH dashboard.
+
+   .. note::
+    Multi user support is not fully implemented yet. While user registration and token authentication is already present in the SQuaSH API we need a third-party OAuth provider for authentication purposes.
+
+In this scenario, ``dispatch_verify`` would accept the user ``local`` environment with the appropriate metadata such as an incremental user run ID, the data set used and the directory path for the user local ``lsstsw`` installation in order to register the package metadata associated to its run.
+
+
+Supporting multiple execution environments
+==========================================
 
 In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user "local" environment, the verification cluster environment and potentially others.
 
