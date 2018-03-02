@@ -170,6 +170,10 @@ Use case 3: Supporting development branches
 
 Given that specific Tasks can make verification measurements on test data sets (see e.g. the ``jointcal`` tests) and send results to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the Jenkins ``stack-os-matrix`` job is triggered by the developer. We can implement on Jenkins a similar mechanism we have to run the stack demo pipeline something like `Send verification measurements to SQuaSH`. SQuaSH can keep track of the branch being tested and the dashboard should make it easy to identify results from development branches and compare them with results for the same verification metrics from master.
 
+  .. note::
+    If the execution time of the ``stack-os-matrix`` job becomes impeditive due to new tests executing the verification measurements, we could think about doing the verification measurements on specialized verfication packages that execute the science pipeline Tasks of interest.
+
+
 Use case 4: Supporting the developer local environment
 ------------------------------------------------------
 
