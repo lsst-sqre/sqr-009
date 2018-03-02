@@ -140,9 +140,8 @@ The ``jointcal`` is an example of science pipeline Task that uses ``lsst.verify`
 
 A Task should produce one verification ``Job`` containing the set of measurements performed by the Task. Usually it would be part of a larger pipeline involving several tasks and the verification measurements would be sent to SQuaSH after the execution of each Task.
 
-In order to illustrate this use case we run the ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
+In order to illustrate this use case we run ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
 
-You can run the `jointcal` as follows:
 
 .. code-block:: bash
 
@@ -166,11 +165,10 @@ Here we set explicitly some variables that would be required in the Jenkins CI e
 
 
 
-Use case 3: Supporting development branchs
+Use case 3: Supporting development branches
 ------------------------------------------
 
-Given that specific Tasks can send verification measurements to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the CI run is triggered by the developer and SQuaSH will keep track of the specific package and branch being tested. On the dashboard these runs are identified by the ID of the CI run but could be filtered by user if needed.
-
+Given that specific Tasks can make verification measurements on test data sets (see e.g. the ``jointcal`` tests) and send results to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the Jenkins ``stack-os-matrix`` job is triggered by the developer. We can implement on Jenkins a similar mechanism we have to run the stack demo pipeline something like `Send verification measurements to SQuaSH`. SQuaSH can keep track of the branch being tested and the dashboard should make it easy to identify results from development branches and compare them with results for the same verification metrics from master.
 
 Use case 4: Supporting the developer local environment
 ------------------------------------------------------
