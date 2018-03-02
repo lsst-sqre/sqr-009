@@ -140,7 +140,7 @@ The ``jointcal`` is an example of science pipeline Task that uses ``lsst.verify`
 
 A Task should produce one verification ``Job`` containing the set of measurements performed by the Task. Usually it would be part of a larger pipeline involving several tasks and the verification measurements would be sent to SQuaSH after the execution of each Task.
 
-In order to illustrate this use case we run ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
+In order to illustrate this use case, we run ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
 
 
 .. code-block:: bash
@@ -149,24 +149,25 @@ In order to illustrate this use case we run ``jointcal`` on HSC test data and us
     $ setup jointcal
     $ setup testdata_jointcal
     $ export ASTROMETRY_NET_DATA_DIR=${TESTDATA_JOINTCAL_DIR}/hsc_and_index
-    $ jointcal.py ${TESTDATA_JOINTCAL_DIR}/hsc/ --output output --id visit=0903334^0903336^0903338^0903342^0903344^0903346 --clobber-versions --clobber-config
+    $ export SETUP_ASTROMETRY_NET_DATA="astrometry_net_data hsc_and_index"
+    $ jointcal.py ${TESTDATA_JOINTCAL_DIR}/hsc/ --output output --id visit=0903334^0903336^0903338^0903342^0903344^0903346 --clobber-versions --clobber-config  --configfile $JOINTCAL_DIR/tests/config/hsc-config.py --configfile photometry-config.py
 
 
-Which will produce among other things the ``verify_output.json`` file with the verification measurements.
+Which will produce among other things the ``output/verify/job.json`` file with the verification measurements.
 
-Here we set explicitly some variables that would be required in the Jenkins CI environment, or the equivalent in other execution environments:
+Here we set explicitly some variables that would be required in the Jenkins CI environment, or equivalently in other execution environments:
 
 .. code-block:: bash
 
-  $ export BUILD_ID=1  # ID in the CI system
-  $ export PRODUCT=jointcal # Name of the package
-  $ export dataset=hsc # Name of the test dataset used
-  $ dispatch_verify.py --url https://squash-restful-api-demo.lsst.codes --user <squash user> --password <squash passwd> --env jenkins --lsstsw <lsstsw directory path> verify_output.json
+    $ export BUILD_ID=1  # ID in the CI system
+    $ export PRODUCT=jointcal # Name of the package
+    $ export dataset=hsc # Name of the test dataset used
+    $ dispatch_verify.py --url https://squash-restful-api-demo.lsst.codes --user <squash user> --password <squash passwd> --env jenkins --lsstsw lsstsw/ output/verify/job.json
 
 
 
 Use case 3: Supporting development branches
-------------------------------------------
+-------------------------------------------
 
 Given that specific Tasks can make verification measurements on test data sets (see e.g. the ``jointcal`` tests) and send results to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the Jenkins ``stack-os-matrix`` job is triggered by the developer. We can implement on Jenkins a similar mechanism we have to run the stack demo pipeline something like `Send verification measurements to SQuaSH`. SQuaSH can keep track of the branch being tested and the dashboard should make it easy to identify results from development branches and compare them with results for the same verification metrics from master.
 
