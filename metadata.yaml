@@ -20,7 +20,7 @@ authors:
     - 'Angelo Fausti'
 
 # Current document version
-last_revised: '2018-02-28'
+last_revised: '2019-03-29'
 
 # Version. Use Semvar, e.g., 1.0, including .dev, as necessary
 # This version string should correspond to the git tag when the document is published on Zenodo
@@ -31,11 +31,10 @@ version: '1.0'
 # doi: 10.5281/zenodo.#####
 
 # Copyright statement
-copyright: '2017 AURA/LSST'
+copyright: '2019 AURA/LSST'
 
 # Description. A short, 1-2 sentence statemement used by document indices.
-description: 'The SQuaSH dashboard is used to monitor the KPM metrics computed by the LSST verification framework,
-here we describe its design and implementation details.'
+description: 'The SQuaSH metrics dashboard is used to track metrics collected from the Science Pipelines. This technote describes its current design and vision.' 
 
 # Abstract, if available
 # abstract: >
