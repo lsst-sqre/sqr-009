@@ -45,218 +45,181 @@
 Introduction
 ============
 
-We present the current design for the Science Quality Analysis Harness (SQuaSH) metrics dashboard being developed by LSST/DM SQuaRE as part of the verification effort.
+We present the current design and vision for the Science Quality System Harness (SQuaSH).
 
-The verification of the LSST software stack performance on simulated and precursor data sets is an important activity during the project construction phase. It gives LSST/DM the opportunity to develop Quality Control (QC) infrastructure and Quality Analysis (QA) code to support the development of the stack and evaluate its results.
+SQuaSH is a web-based service for tracking Science Pipeline metrics. SQuaSH provides a REST API to which metrics values collected from pipeline tasks can be submitted and stored in a database. It enables DM developers to track the evolution of metric values with time and relate them directly to changes in code or configuration.
 
-The DM Science Data Quality Assurance (SDQA) System Conceptual Design [`LDM-522 <http://ls.st/LDM-522>`_] describes the  QC services and QA activities necessary to implement the capabilities listed in the LSST Data Quality Assurrance plan [`LDM-63 <http://ls.st/LSE-63>`_]. In particular, it describes the different tasks to be performed in each QC tier, starting from the **QC Tier 0** which aims to test and verify the DM sub-system during software development, to the **QC Tier 3** which will enable the science collaboration to evaluate the data quality for their own science analyses.
-
-SQuaSH is a QC service, in its current implementation it is focused on **QC Tier 0** tasks. For that we compute  Key Performance Metrics (KPMs) on *fixed* data sets to monitor the stability of the LSST software stack through the Jenkins Continuous Integration (CI) system from daily builds. As part of the CI pipeline, the KPMs are computed by afterburner packages such as ``validate_drp``  [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] and the results are sent to the SQuaSH metrics dashboard for monitoring.
-
-
-In addition to that, we propose a workflow for developers to enable them to instrument their specific Science Pipeline Tasks, perform the verification measurements on development branches through the CI system or even on their local execution environment, and send the results to SQuaSH. We also discuss the SQuaSH integration with the LSST Science Platform (LSP) and how users of the notebook aspect of the LSP can benefit from pre-built SQuaSH apps embeded in the Jupyter notebooks. Finally, in the Appendix we provide more information about the system architecture and its deployment on the Google Kubernetes Engine (GKE).
-
-The current production version of the SQuaSH metrics dashboard is available at https://squash.lsst.codes/ and the current development version at https://squash-demo.lsst.codes/.
-
-We expect to get feedback from users and iterate with the science pipelines group to incorporate their metrics and visualizations in SQuaSH. The main goal is to anticipate the needs for commissioning and to leverage the production SDQA system based on this experience.
+The current version of SQuaSH runs at https://squash.lsst.codes, and the reference documentation is available at https://squash.lsst.io.
 
 
 Design guidelines
 =================
 
+The DM Science Data Quality Assurance (SDQA) Conceptual Design [`LDM-522 <http://ls.st/LDM-522>`_] describes the Quality Control (QC) services required to enable the capabilities listed in the LSST Data Quality Assurance plan [`LDM-63 <http://ls.st/LSE-63>`_].
 
+The general guidelines for SQuaSH are the following:
 
-Some of the design guidelines and features of SQuaSH are summarized below:
+- Implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_;
+- Implement a database to preserve the results of the verification runs, initially from DM Jenkins CI but also other execution environments;
+- Enable the visualization of metric values through interactive dashboards;
+- Provide notifications/alerts upon metric value deviations from the specifications;
+- Enable the drill down to external dashboards and the LSST Science Platform for exploratory analysis.
 
- - implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_
- - implement a QC database to support the tasks performed in the QC Tier 0, 1, 2 and 3 to preserve and visualize their results
- - support multiple test datasets and multiple verification packages
- - support automated verification runs, initially through the Jenkins CI environment and other execution environments
- - enable interactive visualization for the metric measurements
- - correlate deviations of the metric measurements with code changes
- - provide notifications/alerts upon metric measurement deviations
- - provide the "drill down" capability, i.e, in addition to the visualization of the scalar metrics enable further interactive visualization from the same data used to perform the metric measurements
- - extensible: make it easy for users to add new visualizations (a.k.a SQuaSH apps)
- - embeddable: reuse SQuaSH apps for analysis in the LSP notebook aspect
- - replaceable: easy to replace SQuaSH components keep up with standard technologies
- - deployable on Kubernetes
+More recently, the QA Strategy Working Group Report [`DMTN-085 <https://dmtn-085.lsst.io/>`_] compiled a set of recommendations for SQuaSH which are guiding its current development.
 
-Other desired capabilities:
-
- - support verification runs from the developer "local" environment
- - support multi users to keep results from user "local" verification runs, use GitHub OAuth for the SQuaSH API.
- - record measurements of a given metric per Patch, Visit, CCD specially for QC-Tier 2 and 3 where we process larger data sets. If we aggregate metric measurements at the CCD level to the Visit level we can also implement some kind of drill down visualization.
-
-
-Commissioning Extensions for SQuaSH
------------------------------------
-   * https://confluence.lsstcorp.org/display/LSSTCOM/Commissioning+Extensions+for+SQuaSH
-
-
-
-SQuaSH in the context of the DM software development
-====================================================
-
-
-The LSST Verification framework
--------------------------------
-
-The ``lsst.verify`` is the framework for making verification measurements in the LSST Science Pipelines. ``lsst.verify`` aims to generalize the process of defining metrics, measuring those metrics, and tracking those measurements in SQuaSH. The design is described in `SQR-017 <https://sqr-019.lsst.io/>`_, and `SQR-019 <https://sqr-019.lsst.io/>`_ demonstrates its use.
-
-``lsst.verify`` is currently being used by specialized afterburner packages such as ``validate_drp`` [`DMTN-008 <http://dmtn-008.lsst.io/en/latest/>`_] but it can also be used to track performance metrics of specific pipeline Tasks such as ``jointcal``.
-
-See also `DMTN-057 <https://dmtn-057.lsst.io/>`_ for a discussion on how to instrument the Science Pipelines tasks with verification metrics based on the ``ap_verify`` experience.
-
-
-The SQuaSH API implements the concepts developed in ``lsst.verify``. A verification ``Job`` is the result of a verification run and contains at least one measurement of a particular metric. A ``Job`` also contains metadata, with information about the execution environment, and the actual data used to make the measurements. The data used to make the measurements is called `data blob` which includes tabular data and additional metadata. Blobs are used for the drill down visualization in SQuaSH.
-
-A ``Job`` object produced by ``lsst.verify`` can be persisted as a JSON file and sent to SQuaSH using the ``dispatch_verify`` utility.
-
-
-Next we discuss use cases for DM developers involving SQuaSH.
-
-
-Use case 1: Afterburner packages in CI
---------------------------------------
+Overview
+========
 
 .. figure:: _static/overview.png
-   :name: overview
+   :name: SQuaSH overview.
    :target: _static/overview.png
-   :alt: SQuaSH in the context of CI
 
-SQuaSH supports verification packages that run as afterburners in Jenkins CI. In the current implementation the Jenkins ``release/nightly-release`` pipeline builds the stack and triggers ``validate_drp`` which measures metrics from the ``ProcessCcdTask`` outputs.
+   The figure shows the SQuaSH system and its connection to other DM tools.
 
-By measuring metrics on `fixed` data sets in CI, we monitor the stability of the LSST software stack and can correlate deviations of the metric measurements with code changes.
+Collecting metrics with the LSST Verification Framework
+-------------------------------------------------------
 
-The results are sent to the `SQuaSH metrics dashboard <https://squash.lsst.codes/>`_.
+The LSST Verification Framework (``lsst.verify``) is the DM framework for collecting metrics from the Science Pipelines. It aims to generalize the process of defining metrics and specifications, persist the results in *verification jobs* and send them to SQuaSH (see `SQR-019 <https://sqr-019.lsst.io/>`_ for a demonstration).
 
+Currently, the following pipelines run in our Jenkins CI system:
 
-Use case 2: Instrumenting science pipeline Tasks
-------------------------------------------------
-
-Developers can implement verification metrics on their own pipeline Tasks.
-
-The ``jointcal`` is an example of science pipeline Task that uses ``lsst.verify`` for defining its performance metrics and making verification measurements.
-
-A Task should produce one verification ``Job`` containing the set of measurements performed by the Task. Usually it would be part of a larger pipeline involving several tasks and the verification measurements would be sent to SQuaSH after the execution of each Task.
-
-In order to illustrate this use case, we run ``jointcal`` on HSC test data and use ``dispatch_verify`` to sent the results to SQuaSH.
+- `validate_drp <https://ci.lsst.codes/blue/organizations/jenkins/sqre%2Fvalidate_drp/activity>`_
+- `ap_verify <https://ci.lsst.codes/blue/organizations/jenkins/scipipe%2Fap_verify/activity>`_
 
 
-.. code-block:: bash
+Storing results in SQuaSH
+-------------------------
 
-    $ setup obs_subaru
-    $ setup jointcal
-    $ setup testdata_jointcal
-    $ export ASTROMETRY_NET_DATA_DIR=${TESTDATA_JOINTCAL_DIR}/hsc_and_index
-    $ export SETUP_ASTROMETRY_NET_DATA="astrometry_net_data hsc_and_index"
-    $ jointcal.py ${TESTDATA_JOINTCAL_DIR}/hsc/ --output output --id visit=0903334^0903336^0903338^0903342^0903344^0903346 --clobber-versions --clobber-config  --configfile $JOINTCAL_DIR/tests/config/hsc-config.py --configfile photometry-config.py
+The SQuaSH REST API is a web app implemented in Flask for managing the SQuaSH metrics dashboard.
 
+When a verification job is sent to the SQuaSH API, the context information like metrics definition and specifications, execution environment metadata, etc are stored in the context database. The SQuaSH context database is a relational database using MySQL (see :ref:`context-database`).
 
-Which will produce among other things the ``output/verify/job.json`` file with the verification measurements.
-
-Here we set explicitly some variables that would be required in the Jenkins CI environment, or equivalently in other execution environments:
-
-.. code-block:: bash
-
-    $ export BUILD_ID=1  # ID in the CI system
-    $ export PRODUCT=jointcal # Name of the package
-    $ export dataset=hsc # Name of the test dataset used
-    $ dispatch_verify.py --url https://squash-restful-api-demo.lsst.codes --user <squash user> --password <squash passwd> --env jenkins --lsstsw lsstsw/ output/verify/job.json
+The metric values and associated metadata (the time-series data) are stored primarily in a time-series database using InfluxDB. The resulting *data model* is exposed through the Chronograf UI, and is used for querying the data and visualizing the time series.
 
 
+Metric values
+^^^^^^^^^^^^^
 
-Use case 3: Supporting development branches
--------------------------------------------
+In ``lsst.verify``,  a verification package groups a set of the metric definitions and specifications. See for example `verify_metrics <https://github.com/lsst/verify_metrics/tree/master/metrics>`_.
 
-Given that specific Tasks can make verification measurements on test data sets (see e.g. the ``jointcal`` tests) and send results to SQuaSH, it might be interesting for the developer to do so before merging the development branch to master. That would enable developers to compare their performance metrics with previous results on master and to avoid regressions in the first place. The results would be sent to SQuaSH when the Jenkins ``stack-os-matrix`` job is triggered by the developer. We can implement on Jenkins a similar mechanism we have to run the stack demo pipeline something like `Send verification measurements to SQuaSH`. SQuaSH can keep track of the branch being tested and the dashboard should make it easy to identify results from development branches and compare them with results for the same verification metrics from master.
+In InfluxDB, we do not store metric definitions and specifications, only the metric names and values for a given verification package.
 
-  .. note::
-    If the execution time of the ``stack-os-matrix`` job becomes impeditive due to new tests executing the verification measurements, we could think about doing the verification measurements on specialized verfication packages that execute the science pipeline Tasks of interest.
+Every verification package corresponds to an InfluxDB measurement, and it is a ``string``. The metrics are the fields associated to that measurement. The field key is the full qualified metric name always a ``string``, for example ``validate_drp.AM1``, and the field value is the metric value, usually a ``float``.
 
+Metadata
+^^^^^^^^
 
-Use case 4: Supporting the developer local environment
-------------------------------------------------------
+A verification job includes metadata for the metrics and the execution environment.
 
-Another use case is to support the developer local execution environment. An implication for that is to support multiple users in SQuaSH. Then the ``user_id`` can be associated with the corresponding ``job_id`` and the results can be displayed by user in the SQuaSH dashboard.
+The decision of what metadata gets stored as InfluxDB tags and what gets stored as InfluxDB fields follows the general recommendations for the `InfluxDB schema design <https://docs.influxdata.com/influxdb/v1.7/concepts/schema_and_data_layout/>`_ and the queries we need to do also drive that decision.
 
-   .. note::
-    Multi user support is not fully implemented yet. While user registration and token authentication is already present in the SQuaSH API we need a third-party OAuth provider for authentication purposes.
+In InfluxDB, tag values are always ``string``, field values are usually ``float``. See all possible `InfluxDB datatypes <https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_reference/#data-types>`_.
 
-In this scenario, ``dispatch_verify`` would accept the user ``local`` environment with the appropriate metadata such as an incremental user run ID, the data set used and the directory path for the user local ``lsstsw`` installation in order to register the package metadata associated to its run.
+Examples of job metadata that gets stored as tags are ``pipeline``, ``dataset``, ``filter``, ``ccdnum``, ``visit``, ``patch``, ``tract`` or information that is commonly-queried metadata. An example of job metadata that gets stored as a field is the ``run_id`` because it would increase the `time series cardinality <https://docs.influxdata.com/influxdb/v1.7/concepts/schema_and_data_layout/#don-t-have-too-many-series>`_ otherwise.
 
-
-Supporting multiple execution environments
-==========================================
-
-In order to be useful for the verification activities SQuaSH must support multiple execution enviroments like the Jenkins CI, the user "local" environment, the verification cluster environment and potentially others.
-
-In the verification framework, a ``Job`` packages several measurements, metadata and data blobs. The metadata contains information about the execution environment.
-
-Examples of verification ``Job`` metadata for different execution environments:
-
-   * Jenkins CI
-      * Look up key: ID of the CI run
-      * Environment metadata: ``ci_name``, ``ci_dataset``, ``ci_label``, ``ci_url``, lsstsw and extra packages
-   * User local environment (imply support to multiple users)
-      * Look up key: ID of the user run
-      * Environment metadata: lsstsw and extra packages
-   * Verification Cluster
-      * Look up key: ID of the verification cluster run.
-      * Environment metadata: lsst stack build (assuming we are using stable versions of the stack only)
+The concept of `series <https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series>`_ in InfluxDB is also of importance here, every measurement and tag set result in a different series in InfluxDB, and the associated fields make a `point <https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#point>`_ in every series.
 
 .. note::
-    For **QC Tier 1** the metadata may include things like the stack configuration used in each run.
+
+  It is not possible to combine tags or fields from different measurements in the same query in InfluxDB, given the above data model this fact should be taken into account when creating new verification packages in ``lsst.verify``.
 
 
-The SQuaSH RESTful API provides a generic resource to interact with jobs and specific resources to interact with runs on different execution environments that ultimately map to a job. In this way a request to ``/jenkins/<ci_id>`` or ``/local/<username>/<run_id>`` will look up for the corresponding ``/jobs/<job_id>`` to retrieve the associated measurements, metadata and data blobs.
+The following table describes metata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
+
+.. csv-table:: The table describe metadata stored as tags.
+   :header: Tag key, Example of tag value, Description
+   :widths: 20, 20, 50
+
+   env_name, jenkins,  Name of the environment where the metrics were collected
+   pipeline, validate_drp, Name of the pipeline that collected the metrics
+   instrument, HSC, Name of the instrument that collected the data
+   dataset, validation_data_hsc,  Name of dataset that was processed
+   filter, HSC-I ,  The corresponding filter for the dataset
+   ccdnum,  10,  The ccd ID
+   visit, 1543, The visit ID
+   patch, 9615, The patch ID
+   tract, 1258, The tract ID
+   status, 0, Status of the pipeline execution. 0-success or 1-failure
+
+The following table describes metadata stored as fields. SQuaSH explicitly adds these metadata as fields as opposed to tags.
+
+.. csv-table:: The table describes metadata stored as fields.
+    :header: Field key, Example of field value, Description
+    :widths: 20, 20, 50
+
+    timestamp,1553859000,Timestamp of the pipeline run in Unix time format. It is added as a field to facilitate math operations which are not possible with the original timestamps in InfluxDB.
+    run_id, 1612, ID of the pipeline run
+    run_url, `1612 <https://ci.lsst.codes/job/sqre/job/validate_drp/1612/>`_, URL of the pipeline run
+    squash_id, 3631, ID of the corresponding verification job in SQuaSH
+    squash_url, `3631 <https://squash-restful-api.lsst.codes/job/3631>`_, URL of the corresponding verification job in SQuaSH
+    code_changes, afw, List of packages that changed w.r.t the previous ``run_id``. It is present in the `jenkins` environment only.
+    code_changes_counts, 7, Number of packages that changed w.r.t the previous ``run_id``. It is present in the `jenkins` environment only.
 
 
+Time-series visualization with Chronograf
+-----------------------------------------
 
-SQuaSH in the context of the LSST Science Platform
-==================================================
+The SQuaSH data model is presented to the users through the UI which is based on `Chronograf <https://www.influxdata.com/time-series-platform/chronograf/>`_. From the Chronograf UI, the user can query the metric values, the associated metadata, aggregate results and present them in interactive dashboards.
 
-.. figure:: _static/squash_lsp.png
-   :name: overview
-   :target: _static/overview.png
-   :alt: SQuaSH in the context of the LSP
 
-Using the LSP environment for QC-Tier 3 analysis. Using SQuaSH to submit verification runs in the verification cluster. Embedding SQuaSH apps in the JupyterLab environment.
+.. figure:: _static/datamodel.png
+       :name: Chronograf UI, graph view.
+       :target: _static/datamodel.png
+
+       The figure shows how the SQuaSH data model is presented to the user through the Chronograf UI. This particular query displays a time series for the ``validate_drp.AM1`` metric, selecting the ``validation_data_hsc`` dataset and grouping the results by filter.
+
+
+.. figure:: _static/datamodel2.png
+      :name: Chronograf UI, table view.
+      :target: _static/datamodel2.png
+
+      The same query as shown in the previous figure, but now adding the ``run_id`` and visualizing the results in a table view.
+
+
+Alert rules and notifications with Kapacitor
+--------------------------------------------
+
+Chronograf is also the user interface for Kapacitor, a native data processing engine that can process both stream and batch data from InfluxDB. Although, the user can create alerts through the UI the goal is to create alert rules programmatically from the metric specifications stored in SQuaSH.
+
+
+Using SQuaSH with the LSST Science Platform
+-------------------------------------------
 
 
 
 Appendix
 ========
 
+Supporting multiple execution environments
+------------------------------------------
 
-Deployment
-----------
+To be generally useful for the verification activities, SQuaSH must support multiple execution environments.
 
-SQuaSH is currently deployed to a commodity cloud, the Google Cloud Platform, on the Google Kubernetes Engine (GKE), and is architected as independent microservices. The figure below shows the various "layers" of the Kubernetes deployment, the *service* which provides an external IP to the microservice, the *pod* which groups containers running on the same GKE node. Other Kubernetes objects like *secrets* and customized configurations stored as *configmaps* are also indicated in the figure. The microservices ``squash-restful-api``, ``squash-bokeh`` and ``squash-dash`` are connected through HTTPS and TLS termination is implemented trough the ``nginx`` container which works as a reverse proxy to secure the traffic outside the pods.
+Examples of metadata for different execution environments:
 
-.. figure:: _static/squash-deployment.png
-   :name: squash-deployment
-   :target: _static/squash-deployment.png
-   :alt: SQuaSH Kubernetes deployment
+   * Jenkins CI
+      * Look up key: ID of the CI run
+      * Environment metadata: ``ci_id``, ``ci_name``, ``ci_dataset``, ``ci_url``, stack packages.
+   * LSST Data Facility (LDF)
+      * Look up key: ID of the pipeline run.
+      * Environment metadata: run ID, pipeline name, pipeline configuration, butler repository
+   * User local environment
+      * Look up key: ID of the user run
+      * Environment metadata: run ID
 
-
-The general instructions to deploy squash can be found at `squash-deployment <https://github.com/lsst-sqre/squash-deployment>`_ with links to the individual microservices:
-
-   * `squash-restful-api <https://github.com/lsst-sqre/squash-rest-api>`_: it is used to manage the SQuaSH metrics dashboard. The SQuaSH RESTful API was developed initially using `Django DRF <https://github.com.lsst-sqre/squash-api>`_ and then reimplemented in Flask with several extensions. It also uses Celery to enable the execution of tasks in background. This can be extended later to
-
-   * `squash-bokeh <https://github.com/lsst-sqre/squash-bokeh>`_: it serves the squash bokeh apps, we use the `Bokeh plotting library <http://bokeh.pydata.org/en/latest>`_ for rich interactive visualizations.
-
-   * `squash-dash <https://github.com/lsst-sqre/squash-dash>`_: dashboard to embed the bokeh apps. Alternatively we are exploring the possibility to embed the same apps in the Jupyter Lab environment of the LSST Science Platform.
-
+The SQuaSH API provides a generic resource to interact with verification jobs, ``/job/<id>``, and specific resources to interact with **runs** on different execution environments. A run may contain results of multiple verification jobs.  For example a ``GET`` request to ``/jenkins/<run_id>`` or to ``/local/<username>/<run_id>`` will retrieve the corresponding jobs.
 
 
-The QC Tier 0 database
-----------------------
+.. _context-database:
 
+The SQuaSH context database
+---------------------------
 
-For the QC Tier 0 DB, we opted for a relational database. The motivation behind this choice is that we plan to deploy QC DBs to the Oracle *consolidated database* as part of the LSP. SQuaSH currently uses an instance of MySQL 5.7 deployed to Cloud SQL. We chose MySQL over MariaDB, used in Qserv, because of the support to JSON data types which are used in this implementation to make the database schema more generic. We store Job metadata, environment metadata as well as metric definitions and specifications as JSON blobs.
+We adopted a relational database for the SQuaSH context database. The motivation for this choice is mainly for the deploy of the SQuaSH context database to the LSST consolidated database, and the common TAP interface to access the SQuaSH metrics.
 
-Current SQuaSH database schema for QC Tier 0 tasks. This implementation supports multiple verification packages and multiple execution environments.
+In its current deployment, SQuaSH uses a MySQL 5.7 instance in Google Cloud SQL.  MySQL 5.7 offers support to JSON data types which are used to make the database schema more flexible. We store verification job metadata, environment metadata as well as metric definitions and specifications as JSON data types.
+
+Current SQuaSH context database:
 
    * Entities:
       * ``env``, ``user``, ``job``, ``package``, ``blob``, ``measurement``, ``metric``, ``spec``
@@ -270,68 +233,10 @@ Current SQuaSH database schema for QC Tier 0 tasks. This implementation supports
 
 
 .. figure:: _static/qc-0-db.png
-   :name: QC Tier 0 Database
+   :name: SQuaSH context database.
    :target: _static/qc-0-db.png
-   :alt: QC Tier 0 Database
 
-Back ups of the SQuaSH QC Tier 0 DB are automated in Cloud SQL.
-
-The SQuaSH RESTful API
-----------------------
-
-The SQuaSH RESTful API is a web app implemented in Flask for managing the SQuaSH metrics dashboard.
-
-Current version
-^^^^^^^^^^^^^^^
-
-By default, all requests to https://squash-restful-api-demo.lsst.codes/ receive version 1.0 (default) of the RESTful API. The default version of the API may change in the future, thus we encourage you to explicitly request versions via the Accept header.
-
-You can specify a version like this:
-
-.. code-block:: json
-
-    Accept: application/json; version=1.0
+   The figure shows the relational schema for the SQuaSH context database.
 
 
-Schema
-^^^^^^
-
-All API access is over HTTPS, accessed from the https://squash-restful-api-demo.lsst.codes/. All data is sent and received
-as JSON.
-
-Authentication
-^^^^^^^^^^^^^^
-
-Operations like POST and DELETE (see below) require authentication. To authenticate through the SQuaSH RESTful API you need to provide a valid access token in the authorization header, which can be obtained from the `/auth` endpoint for a registered user:
-
-.. code-block:: python
-
-    import requests
-
-    # assuming a registered user
-    user = {'username': user, 'password': passwd}
-    r = requests.post("https://squash-restful-api-demo.lsst.codes/auth", json=user)
-    access_token = 'JWT ' + r.json()['access_token']
-
-    # assuming you a have a job document you want to post to SQuaSH
-    headers = {'Authorization': access_token}
-    r = requests.post("https://squash-restful-api-demo.lsst.codes/job", json=job, headers=headers)
-
-
-Documentation
-^^^^^^^^^^^^^
-
-The SQuaSH RESTful API follows the `OpenAPI 2.0 documentation specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_. The specification is extracted from the docstrings by the `flasgger <https://github.com/rochacbruno/flasgger>`_ utility which is also used to create the `Swagger UI <https://squash-restful-api-demo.lsst.codes/apidocs>`_ for the API.
-
-.. note::
-    The Swagger UI is experimental, authentication does not work through this interface yet.
-
-This `notebook <https://github.com/lsst-sqre/squash-rest-api/blob/master/tests/test_api.ipynb>`_ provides an example on how
-to interact with the SQuaSH RESTful API from registering a new user in SQuaSH to loading a verification job.
-
-All the available resources and possible operations are listed below:
-
-.. openapi:: _static/apispec_1.json
-
-
-
+In the Google platform deployment, the Cloud SQL manages the backups of the SQuaSH context database.
