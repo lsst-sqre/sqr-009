@@ -45,7 +45,7 @@
 Introduction
 ============
 
-We present the current design and vision for the Science Quality System Harness (SQuaSH).
+We present the current design and vision for the Science Quality Analysis Harness (SQuaSH).
 
 SQuaSH is a web-based service for tracking Science Pipeline metrics. SQuaSH provides a REST API to which metrics values collected from pipeline tasks can be submitted and stored in a database. It enables DM developers to track the evolution of metric values with time and relate them directly to changes in code or configuration.
 
