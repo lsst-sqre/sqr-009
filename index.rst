@@ -124,7 +124,7 @@ The concept of `series <https://docs.influxdata.com/influxdb/v1.7/concepts/gloss
   It is not possible to combine tags or fields from different measurements in the same query in InfluxDB, given the above data model this fact should be taken into account when creating new verification packages in ``lsst.verify``.
 
 
-The following table describes metata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
+The following table describes metadata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
 
 .. csv-table:: The table describe metadata stored as tags.
    :header: Tag key, Example of tag value, Description
