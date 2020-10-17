@@ -240,3 +240,8 @@ Current SQuaSH context database:
 
 
 In the Google platform deployment, the Cloud SQL manages the backups of the SQuaSH context database.
+
+Acronyms
+--------
+
+.. include:: acronyms.rst
