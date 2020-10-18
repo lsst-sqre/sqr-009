@@ -56,3 +56,6 @@ refresh-bib:
 	refresh-lsst-bib -d lsstbib
 	@echo
 	@echo "Commit the new bibliographies:\n\n\tgit add lsstbib && git commit -m \"Update bibliographies.\""
+
+acronyms.rst:
+	generateAcronyms.py -m rst index.rst 

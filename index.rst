@@ -45,7 +45,7 @@
 Introduction
 ============
 
-We present the current design and vision for the Science Quality System Harness (SQuaSH).
+We present the current design and vision for the Science Quality Analysis Harness (SQuaSH).
 
 SQuaSH is a web-based service for tracking Science Pipeline metrics. SQuaSH provides a REST API to which metrics values collected from pipeline tasks can be submitted and stored in a database. It enables DM developers to track the evolution of metric values with time and relate them directly to changes in code or configuration.
 
@@ -124,7 +124,7 @@ The concept of `series <https://docs.influxdata.com/influxdb/v1.7/concepts/gloss
   It is not possible to combine tags or fields from different measurements in the same query in InfluxDB, given the above data model this fact should be taken into account when creating new verification packages in ``lsst.verify``.
 
 
-The following table describes metata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
+The following table describes metadata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
 
 .. csv-table:: The table describe metadata stored as tags.
    :header: Tag key, Example of tag value, Description
@@ -240,3 +240,8 @@ Current SQuaSH context database:
 
 
 In the Google platform deployment, the Cloud SQL manages the backups of the SQuaSH context database.
+
+Acronyms
+--------
+
+.. include:: acronyms.rst
