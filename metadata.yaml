@@ -20,7 +20,7 @@ authors:
     - 'Angelo Fausti'
 
 # Current document version
-last_revised: '2019-03-29'
+last_revised: '2020-12-02'
 
 # Version. Use Semvar, e.g., 1.0, including .dev, as necessary
 # This version string should correspond to the git tag when the document is published on Zenodo
@@ -31,10 +31,10 @@ version: '1.0'
 # doi: 10.5281/zenodo.#####
 
 # Copyright statement
-copyright: '2019 AURA/LSST'
+copyright: '2020 AURA/LSST'
 
 # Description. A short, 1-2 sentence statemement used by document indices.
-description: 'The SQuaSH metrics dashboard is used to track metrics collected from the Science Pipelines. This technote describes its current design and vision.' 
+description: 'The SQuaSH metrics dashboard is used to track metrics collected from the Science Pipelines. This technote describes its current implementation.' 
 
 # Abstract, if available
 # abstract: >

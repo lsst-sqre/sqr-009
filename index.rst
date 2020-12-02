@@ -45,9 +45,9 @@
 Introduction
 ============
 
-We present the current design and vision for the Science Quality Analysis Harness (SQuaSH).
+We present the current implementation of the Science Quality Analysis Harness (SQuaSH).
 
-SQuaSH is a web-based service for tracking Science Pipeline metrics. SQuaSH provides a REST API to which metrics values collected from pipeline tasks can be submitted and stored in a database. It enables DM developers to track the evolution of metric values with time and relate them directly to changes in code or configuration.
+SQuaSH is a web-based service for tracking Science Pipeline metrics. SQuaSH provides a REST API to which metrics values collected from pipeline tasks can be submitted and stored in a database. It enables DM developers to track the evolution of metric values over time (time series) and relate them directly to changes in code or configuration. SQuaSH adopted `InfluxDB OSS <https://docs.influxdata.com/influxdb/v1.8/>`_ as storage backend for time series data and `Chronograf <https://docs.influxdata.com/chronograf/v1.8/>`_ for time series visualization.
 
 The current version of SQuaSH runs at https://squash.lsst.codes, and the reference documentation is available at https://squash.lsst.io.
 
@@ -60,9 +60,9 @@ The DM Science Data Quality Assurance (SDQA) Conceptual Design [`LDM-522 <http:/
 The general guidelines for SQuaSH are the following:
 
 - Implement the concepts developed in the `LSST Verification Framework <https://sqr-019.lsst.io>`_;
-- Implement a database to preserve the results of the verification runs, initially from DM Jenkins CI but also other execution environments;
+- Implement a database to preserve the results of the verification runs, initially from DM Jenkins CI but also from other execution environments;
 - Enable the visualization of metric values through interactive dashboards;
-- Provide notifications/alerts upon metric value deviations from the specifications;
+- Provide alert notifications upon metric value deviations from the specifications;
 - Enable the drill down to external dashboards and the LSST Science Platform for exploratory analysis.
 
 More recently, the QA Strategy Working Group Report [`DMTN-085 <https://dmtn-085.lsst.io/>`_] compiled a set of recommendations for SQuaSH which are guiding its current development.
@@ -79,7 +79,7 @@ Overview
 Collecting metrics with the LSST Verification Framework
 -------------------------------------------------------
 
-The LSST Verification Framework (``lsst.verify``) is the DM framework for collecting metrics from the Science Pipelines. It aims to generalize the process of defining metrics and specifications, persist the results in *verification jobs* and send them to SQuaSH (see `SQR-019 <https://sqr-019.lsst.io/>`_ for a demonstration).
+The LSST Verification Framework (``lsst.verify``) is the DM framework for collecting metrics from the Science Pipelines. It aims to generalize the process of defining metrics and specifications, persist the results in *verification jobs* and dispatch them to SQuaSH (see `SQR-019 <https://sqr-019.lsst.io/>`_ for a demonstration of the LSST Verification Framework).
 
 Currently, the following pipelines run in our Jenkins CI system:
 
@@ -90,11 +90,11 @@ Currently, the following pipelines run in our Jenkins CI system:
 Storing results in SQuaSH
 -------------------------
 
-The SQuaSH REST API is a web app implemented in Flask for managing the SQuaSH metrics dashboard.
+The SQuaSH REST API is a web app implemented in Flask for managing the verification jobs.
 
-When a verification job is sent to the SQuaSH API, the context information like metrics definition and specifications, execution environment metadata, etc are stored in the context database. The SQuaSH context database is a relational database using MySQL (see :ref:`context-database`).
+When a verification job is sent to the SQuaSH REST API, context information like metrics definition and specifications, execution environment metadata, etc are stored in the SQuaSH context database. The SQuaSH context database is a relational database using MySQL (see :ref:`context-database`).
 
-The metric values and associated metadata (the time-series data) are stored primarily in a time-series database using InfluxDB. The resulting *data model* is exposed through the Chronograf UI, and is used for querying the data and visualizing the time series.
+The metric values and associated metadata (time series data) are stored primarily in InfluxDB. The resulting data is exposed through Chronograf, that is used for querying and visualizing the time series data.
 
 
 Metric values
@@ -102,29 +102,30 @@ Metric values
 
 In ``lsst.verify``,  a verification package groups a set of the metric definitions and specifications. See for example `verify_metrics <https://github.com/lsst/verify_metrics/tree/master/metrics>`_.
 
-In InfluxDB, we do not store metric definitions and specifications, only the metric names and values for a given verification package.
+In InfluxDB, we do not store metric definitions and specifications, only the metric names and values for the verification packages.
 
-Every verification package corresponds to an InfluxDB measurement, and it is a ``string``. The metrics are the fields associated to that measurement. The field key is the full qualified metric name always a ``string``, for example ``validate_drp.AM1``, and the field value is the metric value, usually a ``float``.
+A verification package corresponds to an *InfluxDB measurement*, a name that groups together the metrics associated to that verification package. Metrics correspond to *InfluxDB fields*, the field key is the  metric name always a ``string``, for example ``AM1``, and the field value is the metric value, typically a ``float`` number.
 
 Metadata
 ^^^^^^^^
 
 A verification job includes metadata for the metrics and the execution environment.
 
-The decision of what metadata gets stored as InfluxDB tags and what gets stored as InfluxDB fields follows the general recommendations for the `InfluxDB schema design <https://docs.influxdata.com/influxdb/v1.7/concepts/schema_and_data_layout/>`_ and the queries we need to do also drive that decision.
+The decision of which metadata gets stored as InfluxDB tags or InfluxDB fields follows these  `recommendations for the InfluxDB schema design <https://docs.influxdata.com/influxdb/v1.8/concepts/schema_and_data_layout/>`_.  The type of queries we intend to do may also drive that decision given that tags are indexed in InfluxDB and fields are not.
 
-In InfluxDB, tag values are always ``string``, field values are usually ``float``. See all possible `InfluxDB datatypes <https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_reference/#data-types>`_.
+In InfluxDB, tag values are always ``string``, field values are usually ``float`` (see `InfluxDB datatypes <https://docs.influxdata.com/influxdb/v1.8/write_protocols/line_protocol_reference/#data-types>`_)
 
 Examples of job metadata that gets stored as tags are ``pipeline``, ``dataset``, ``filter``, ``ccdnum``, ``visit``, ``patch``, ``tract`` or information that is commonly-queried metadata. An example of job metadata that gets stored as a field is the ``run_id`` because it would increase the `time series cardinality <https://docs.influxdata.com/influxdb/v1.7/concepts/schema_and_data_layout/#don-t-have-too-many-series>`_ otherwise.
 
-The concept of `series <https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series>`_ in InfluxDB is also of importance here, every measurement and tag set result in a different series in InfluxDB, and the associated fields make a `point <https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#point>`_ in every series.
+The concept of `series <https://docs.influxdata.com/influxdb/v1.7/concepts/glossary/#series>`_ in InfluxDB is also of importance here. For each measurement any combination of tag values results in a different series in the database. That's the basic concept behind our decision to store metric values on the smallest granularity possible, for example using ccdnum, visit or tract as tags. Then in InfluxDB we can query metric values per ccdnum, visit or tract, aggregate metric values over multiple ccdnums, visits or tracts or make a snapshot in time and create a "metric map” to visualize how the metric values change across the sky.
+
 
 .. note::
 
-  It is not possible to combine tags or fields from different measurements in the same query in InfluxDB, given the above data model this fact should be taken into account when creating new verification packages in ``lsst.verify``.
+  It is not possible to join fields from different measurements in the same query in InfluxDB 1.x, this fact should be taken into account when creating new verification packages in ``lsst.verify``. In InfluxDB 2.0 that's not a limitation anymore.
 
 
-The following table describes metadata stored as tags. It is not meant to be exhaustive as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
+The following table describes metadata stored as tags. It is not meant to be a complete list of tags as SQuaSH adds arbitrary metadata present in a verification job as tags by default.
 
 .. csv-table:: The table describe metadata stored as tags.
    :header: Tag key, Example of tag value, Description
@@ -156,10 +157,12 @@ The following table describes metadata stored as fields. SQuaSH explicitly adds 
     code_changes_counts, 7, Number of packages that changed w.r.t the previous ``run_id``. It is present in the `jenkins` environment only.
 
 
+See also `this notebook <https://github.com/lsst-sqre/squash-api/blob/master/examples/influxdb_data_model.ipynb>`_ that demonstrates how this data model is built.
+
 Time-series visualization with Chronograf
 -----------------------------------------
 
-The SQuaSH data model is presented to the users through the UI which is based on `Chronograf <https://www.influxdata.com/time-series-platform/chronograf/>`_. From the Chronograf UI, the user can query the metric values, the associated metadata, aggregate results and present them in interactive dashboards.
+The SQuaSH data model is presented to the users through the  `Chronograf UI <https://docs.influxdata.com/chronograf/v1.8/>`_. From the Chronograf UI, the user can query the metric values, the associated metadata, aggregate results and present them in interactive dashboards.
 
 
 .. figure:: _static/datamodel.png
@@ -179,12 +182,7 @@ The SQuaSH data model is presented to the users through the UI which is based on
 Alert rules and notifications with Kapacitor
 --------------------------------------------
 
-Chronograf is also the user interface for Kapacitor, a native data processing engine that can process both stream and batch data from InfluxDB. Although, the user can create alerts through the UI the goal is to create alert rules programmatically from the metric specifications stored in SQuaSH.
-
-
-Using SQuaSH with the LSST Science Platform
--------------------------------------------
-
+Chronograf is also the UI for Kapacitor, a native data processing engine that can process both stream and batch data from InfluxDB. Although, the user can create alerts through the UI the goal is to create alert rules programmatically from the metric specifications stored in SQuaSH.
 
 
 Appendix
@@ -203,11 +201,8 @@ Examples of metadata for different execution environments:
    * LSST Data Facility (LDF)
       * Look up key: ID of the pipeline run.
       * Environment metadata: run ID, pipeline name, pipeline configuration, butler repository
-   * User local environment
-      * Look up key: ID of the user run
-      * Environment metadata: run ID
 
-The SQuaSH API provides a generic resource to interact with verification jobs, ``/job/<id>``, and specific resources to interact with **runs** on different execution environments. A run may contain results of multiple verification jobs.  For example a ``GET`` request to ``/jenkins/<run_id>`` or to ``/local/<username>/<run_id>`` will retrieve the corresponding jobs.
+The SQuaSH API provides a generic resource to interact with verification jobs, ``/job/<id>``, and specific resources to interact with **runs** on different execution environments. A run may contain results of multiple verification jobs.  For example a ``GET`` request to ``/jenkins/<run_id>`` or to ``/local/ldf/<run_id>`` will retrieve the corresponding jobs.
 
 
 .. _context-database:
@@ -215,7 +210,7 @@ The SQuaSH API provides a generic resource to interact with verification jobs, `
 The SQuaSH context database
 ---------------------------
 
-We adopted a relational database for the SQuaSH context database. The motivation for this choice is mainly for the deploy of the SQuaSH context database to the LSST consolidated database, and the common TAP interface to access the SQuaSH metrics.
+We adopted a relational database for the SQuaSH context database. The main motivations for this choice is to deploy the SQuaSH context database at the US DF consolidated database (Postres), and to access the SQuaSH metrics through a common TAP interface.
 
 In its current deployment, SQuaSH uses a MySQL 5.7 instance in Google Cloud SQL.  MySQL 5.7 offers support to JSON data types which are used to make the database schema more flexible. We store verification job metadata, environment metadata as well as metric definitions and specifications as JSON data types.
 
